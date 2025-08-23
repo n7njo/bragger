@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  color       String?
+  createdAt   DateTime @default(now())
+  
+  achievements Achievement[]
+  
+  @@map("categories")
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  createdAt   DateTime @default(now())
+  
+  achievements AchievementTag[]
+  
+  @@map("tags")
+}
+
+model Achievement {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  startDate     DateTime
+  endDate       DateTime?
+  durationHours Int?
+  categoryId    String
+  impact        String?
+  skillsUsed    String[]
+  teamSize      Int?
+  priority      Priority @default(MEDIUM)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  category      Category @relation(fields: [categoryId], references: [id])
+  tags          AchievementTag[]
+  images        AchievementImage[]
+  
+  @@map("achievements")
+}
+
+model AchievementTag {
+  achievementId String
+  tagId         String
+  
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([achievementId, tagId])
+  @@map("achievement_tags")
+}
+
+model AchievementImage {
+  id            String   @id @default(cuid())
+  achievementId String
+  filename      String
+  originalName  String
+  filePath      String
+  fileSize      Int
+  mimeType      String
+  createdAt     DateTime @default(now())
+  
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  
+  @@map("achievement_images")
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}

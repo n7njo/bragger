@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: bragger-db
+    environment:
+      POSTGRES_DB: bragger
+      POSTGRES_USER: bragger
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bragger -d bragger"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - bragger-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bragger-backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://bragger:password@postgres:5432/bragger?schema=public
+      FRONTEND_URL: http://localhost:3000
+      PORT: 3001
+    volumes:
+      - ./backend/uploads:/app/uploads
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - bragger-network
+    restart: unless-stopped
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bragger-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - bragger-network
+    restart: unless-stopped
+
+  # Database migration and seeding (runs once)
+  migration:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bragger-migration
+    environment:
+      DATABASE_URL: postgresql://bragger:password@postgres:5432/bragger?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed"
+    networks:
+      - bragger-network
+    volumes:
+      - ./backend/prisma:/app/prisma
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  bragger-network:
+    driver: bridge

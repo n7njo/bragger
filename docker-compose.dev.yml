@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: bragger-db-dev
+    environment:
+      POSTGRES_DB: bragger
+      POSTGRES_USER: bragger
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./backend/prisma:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bragger -d bragger"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bragger-dev-network
+
+  # Redis (for future caching needs)
+  redis:
+    image: redis:7-alpine
+    container_name: bragger-redis-dev
+    ports:
+      - "6379:6379"
+    networks:
+      - bragger-dev-network
+
+  # Adminer (Database management UI)
+  adminer:
+    image: adminer:latest
+    container_name: bragger-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - bragger-dev-network
+
+volumes:
+  postgres_dev_data:
+    driver: local
+
+networks:
+  bragger-dev-network:
+    driver: bridge
