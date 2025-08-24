@@ -81,3 +81,43 @@ export interface PaginatedResponse<T> {
   pageSize: number;
   totalPages: number;
 }
+
+// Category DTOs
+export interface CreateCategoryDto {
+  name: string;
+  color?: string;
+}
+
+export interface UpdateCategoryDto {
+  name?: string;
+  color?: string;
+}
+
+export interface CategoryWithStats extends Category {
+  achievementCount: number;
+}
+
+export interface CategoryFilters {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+// Tag DTOs
+export interface CreateTagDto {
+  name: string;
+}
+
+export interface UpdateTagDto {
+  name?: string;
+}
+
+export interface TagWithStats extends Tag {
+  usageCount: number;
+}
+
+export interface TagFilters {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}

@@ -1,20 +1,36 @@
 import { Request, Response } from 'express';
+import { CategoryService } from '../services/categoryService';
+import { CreateCategoryDto, UpdateCategoryDto, CategoryFilters } from '../types';
+
+const categoryService = new CategoryService();
 
 export const getCategories = async (req: Request, res: Response) => {
   try {
-    // TODO: Implement database query
-    const mockCategories = [
-      { id: '1', name: 'Development', color: '#3b82f6', createdAt: new Date() },
-      { id: '2', name: 'Leadership', color: '#10b981', createdAt: new Date() },
-      { id: '3', name: 'Innovation', color: '#f59e0b', createdAt: new Date() },
-      { id: '4', name: 'Problem Solving', color: '#ef4444', createdAt: new Date() },
-    ];
+    const filters: CategoryFilters = {
+      search: req.query.search as string,
+      page: req.query.page ? parseInt(req.query.page as string) : undefined,
+      pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
+    };
+
+    // Check if stats are requested
+    const includeStats = req.query.includeStats === 'true';
+
+    const result = includeStats 
+      ? await categoryService.findAllWithStats(filters)
+      : await categoryService.findAll(filters);
 
     res.json({
       success: true,
-      data: mockCategories,
+      data: result.data,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize,
+        totalPages: result.totalPages
+      }
     });
   } catch (error) {
+    console.error('Error fetching categories:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch categories',
@@ -22,17 +38,58 @@ export const getCategories = async (req: Request, res: Response) => {
   }
 };
 
+export const getCategoryById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const category = await categoryService.findById(id);
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        error: 'Category not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: category,
+    });
+  } catch (error) {
+    console.error('Error fetching category:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch category',
+    });
+  }
+};
+
 export const createCategory = async (req: Request, res: Response) => {
   try {
-    const { name, color } = req.body;
-    // TODO: Validate and create category in database
+    const createDto: CreateCategoryDto = {
+      name: req.body.name,
+      color: req.body.color,
+    };
+
+    const category = await categoryService.create(createDto);
     
     res.status(201).json({
       success: true,
-      data: { id: 'mock-id', name, color, createdAt: new Date() },
+      data: category,
       message: 'Category created successfully',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error creating category:', error);
+    
+    // Handle validation errors
+    if (error.message.includes('required') || 
+        error.message.includes('already exists') || 
+        error.message.includes('Invalid color format')) {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: 'Failed to create category',
@@ -43,15 +100,39 @@ export const createCategory = async (req: Request, res: Response) => {
 export const updateCategory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, color } = req.body;
-    // TODO: Validate and update category in database
+    const updateDto: UpdateCategoryDto = {
+      name: req.body.name,
+      color: req.body.color,
+    };
+
+    const category = await categoryService.update(id, updateDto);
     
     res.json({
       success: true,
-      data: { id, name, color, createdAt: new Date() },
+      data: category,
       message: 'Category updated successfully',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error updating category:', error);
+
+    // Handle not found errors
+    if (error.message === 'Category not found') {
+      return res.status(404).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
+    // Handle validation errors
+    if (error.message.includes('cannot be empty') || 
+        error.message.includes('already exists') || 
+        error.message.includes('Invalid color format')) {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: 'Failed to update category',
@@ -62,13 +143,31 @@ export const updateCategory = async (req: Request, res: Response) => {
 export const deleteCategory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    // TODO: Delete category from database
+    await categoryService.delete(id);
     
     res.json({
       success: true,
       message: 'Category deleted successfully',
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error deleting category:', error);
+
+    // Handle not found errors
+    if (error.message === 'Category not found') {
+      return res.status(404).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
+    // Handle validation errors
+    if (error.message.includes('in use by achievements')) {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: 'Failed to delete category',
