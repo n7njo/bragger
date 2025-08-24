@@ -6,6 +6,9 @@ const router = Router();
 // GET /api/categories - List all categories
 router.get('/', categoryController.getCategories);
 
+// GET /api/categories/:id - Get category by ID
+router.get('/:id', categoryController.getCategoryById);
+
 // POST /api/categories - Create new category
 router.post('/', categoryController.createCategory);
 

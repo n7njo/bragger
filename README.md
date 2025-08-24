@@ -44,17 +44,51 @@ docker-compose up --build
 open http://localhost:3000
 ```
 
-### Local Development
-```bash
-# Install dependencies
-npm run install:all
+### Local Development Setup
 
-# Start development servers
+#### Automated Setup
+```bash
+# Run the setup script (includes database setup)
+chmod +x scripts/setup.sh
+./scripts/setup.sh
+```
+
+#### Manual Setup
+```bash
+# Start development database
+docker-compose -f docker-compose.dev.yml up -d postgres
+
+# Install backend dependencies
+cd backend
+npm install
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+
+# Install frontend dependencies  
+cd ../frontend
+npm install
+```
+
+#### Running Development Servers
+```bash
+# Terminal 1 - Backend API (http://localhost:3001)
+cd backend
 npm run dev
 
-# Run tests
-npm test
+# Terminal 2 - Frontend App (http://localhost:5173)
+cd frontend  
+npm run dev
 ```
+
+#### Database Access
+- **Adminer UI**: http://localhost:8080 (when running dev compose)
+- **Connection Details**:
+  - System: PostgreSQL
+  - Server: localhost (or postgres from container)
+  - Username: bragger
+  - Password: password
+  - Database: bragger
 
 ## Documentation
 

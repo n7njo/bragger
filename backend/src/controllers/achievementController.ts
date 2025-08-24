@@ -1,19 +1,28 @@
 import { Request, Response } from 'express';
-import { ApiResponse, PaginatedResponse } from '../types';
+import { ApiResponse, PaginatedResponse, CreateAchievementDto, UpdateAchievementDto, AchievementFilters } from '../types';
+import { AchievementService } from '../services/achievementService';
+
+const achievementService = new AchievementService();
 
 export const getAchievements = async (req: Request, res: Response) => {
   try {
-    // TODO: Implement database query with filtering
-    const mockData = {
-      data: [],
-      total: 0,
-      page: 1,
-      pageSize: 10,
-      totalPages: 0,
+    const filters: AchievementFilters = {
+      search: req.query.search as string,
+      categoryId: req.query.categoryId as string,
+      tags: req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags as string[] : [req.query.tags as string]) : undefined,
+      startDate: req.query.startDate as string,
+      endDate: req.query.endDate as string,
+      priority: req.query.priority as 'low' | 'medium' | 'high',
+      sortBy: req.query.sortBy as 'title' | 'startDate' | 'createdAt' | 'priority',
+      sortOrder: req.query.sortOrder as 'asc' | 'desc',
+      page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
+      pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : undefined,
     };
 
-    res.json(mockData);
+    const result = await achievementService.findAll(filters);
+    res.json(result);
   } catch (error) {
+    console.error('Error fetching achievements:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch achievements',
@@ -24,13 +33,29 @@ export const getAchievements = async (req: Request, res: Response) => {
 export const getAchievement = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    // TODO: Implement database query
     
-    res.status(404).json({
-      success: false,
-      error: 'Achievement not found',
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Achievement ID is required',
+      });
+    }
+
+    const achievement = await achievementService.findById(id);
+    
+    if (!achievement) {
+      return res.status(404).json({
+        success: false,
+        error: 'Achievement not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: achievement,
     });
   } catch (error) {
+    console.error('Error fetching achievement:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch achievement',
@@ -40,15 +65,31 @@ export const getAchievement = async (req: Request, res: Response) => {
 
 export const createAchievement = async (req: Request, res: Response) => {
   try {
-    const data = req.body;
-    // TODO: Validate and create achievement in database
+    const data: CreateAchievementDto = req.body;
+    
+    const achievement = await achievementService.create(data);
     
     res.status(201).json({
       success: true,
-      data: { id: 'mock-id', ...data },
+      data: achievement,
       message: 'Achievement created successfully',
     });
   } catch (error) {
+    console.error('Error creating achievement:', error);
+    
+    // Handle validation errors
+    if (error instanceof Error && (
+      error.message.includes('required') ||
+      error.message.includes('Invalid') ||
+      error.message.includes('cannot be empty') ||
+      error.message.includes('not found')
+    )) {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Failed to create achievement',
@@ -59,15 +100,45 @@ export const createAchievement = async (req: Request, res: Response) => {
 export const updateAchievement = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const data = req.body;
-    // TODO: Validate and update achievement in database
+    const data: UpdateAchievementDto = req.body;
+    
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Achievement ID is required',
+      });
+    }
+    
+    const achievement = await achievementService.update(id, data);
     
     res.json({
       success: true,
-      data: { id, ...data },
+      data: achievement,
       message: 'Achievement updated successfully',
     });
   } catch (error) {
+    console.error('Error updating achievement:', error);
+    
+    // Handle validation and not found errors
+    if (error instanceof Error) {
+      if (error.message === 'Achievement not found') {
+        return res.status(404).json({
+          success: false,
+          error: error.message,
+        });
+      }
+      
+      if (error.message.includes('required') ||
+          error.message.includes('Invalid') ||
+          error.message.includes('cannot be empty') ||
+          error.message.includes('not found')) {
+        return res.status(400).json({
+          success: false,
+          error: error.message,
+        });
+      }
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Failed to update achievement',
@@ -78,13 +149,30 @@ export const updateAchievement = async (req: Request, res: Response) => {
 export const deleteAchievement = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    // TODO: Delete achievement from database
+    
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Achievement ID is required',
+      });
+    }
+    
+    await achievementService.delete(id);
     
     res.json({
       success: true,
       message: 'Achievement deleted successfully',
     });
   } catch (error) {
+    console.error('Error deleting achievement:', error);
+    
+    if (error instanceof Error && error.message === 'Achievement not found') {
+      return res.status(404).json({
+        success: false,
+        error: error.message,
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Failed to delete achievement',
