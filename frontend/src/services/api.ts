@@ -1,4 +1,20 @@
-import { Achievement, Category, Tag, CreateAchievementDto, UpdateAchievementDto, AchievementFilters, ApiResponse, PaginatedResponse } from '../types';
+import { 
+  Achievement, 
+  Category, 
+  Tag, 
+  CreateAchievementDto, 
+  UpdateAchievementDto, 
+  AchievementFilters,
+  CreateCategoryDto,
+  UpdateCategoryDto,
+  CategoryFilters,
+  CreateTagDto,
+  UpdateTagDto,
+  TagFilters,
+  ApiResponse, 
+  AchievementResponse,
+  PaginatedResponse 
+} from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -16,7 +32,11 @@ class ApiClient {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        const error = new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        (error as any).status = response.status;
+        (error as any).data = errorData;
+        throw error;
       }
 
       return await response.json();
@@ -26,8 +46,8 @@ class ApiClient {
     }
   }
 
-  // Achievement endpoints
-  async getAchievements(filters?: AchievementFilters): Promise<PaginatedResponse<Achievement>> {
+  // Achievement endpoints - uses different response format than other endpoints
+  async getAchievements(filters?: AchievementFilters): Promise<AchievementResponse<Achievement[]>> {
     const params = new URLSearchParams();
     
     if (filters) {
@@ -43,7 +63,7 @@ class ApiClient {
     }
 
     const query = params.toString();
-    return this.fetch<PaginatedResponse<Achievement>>(`/achievements${query ? `?${query}` : ''}`);
+    return this.fetch<AchievementResponse<Achievement[]>>(`/achievements${query ? `?${query}` : ''}`);
   }
 
   async getAchievement(id: string): Promise<ApiResponse<Achievement>> {
@@ -71,26 +91,82 @@ class ApiClient {
   }
 
   // Category endpoints
-  async getCategories(): Promise<ApiResponse<Category[]>> {
-    return this.fetch<ApiResponse<Category[]>>('/categories');
+  async getCategories(filters?: CategoryFilters): Promise<ApiResponse<Category[]>> {
+    const params = new URLSearchParams();
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined) {
+          params.append(key, String(value));
+        }
+      });
+    }
+
+    const query = params.toString();
+    return this.fetch<ApiResponse<Category[]>>(`/categories${query ? `?${query}` : ''}`);
   }
 
-  async createCategory(data: { name: string; color?: string }): Promise<ApiResponse<Category>> {
+  async getCategory(id: string): Promise<ApiResponse<Category>> {
+    return this.fetch<ApiResponse<Category>>(`/categories/${id}`);
+  }
+
+  async createCategory(data: CreateCategoryDto): Promise<ApiResponse<Category>> {
     return this.fetch<ApiResponse<Category>>('/categories', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  // Tag endpoints
-  async getTags(): Promise<ApiResponse<Tag[]>> {
-    return this.fetch<ApiResponse<Tag[]>>('/tags');
+  async updateCategory(id: string, data: UpdateCategoryDto): Promise<ApiResponse<Category>> {
+    return this.fetch<ApiResponse<Category>>(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
   }
 
-  async createTag(data: { name: string }): Promise<ApiResponse<Tag>> {
+  async deleteCategory(id: string): Promise<ApiResponse<void>> {
+    return this.fetch<ApiResponse<void>>(`/categories/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Tag endpoints
+  async getTags(filters?: TagFilters): Promise<ApiResponse<Tag[]>> {
+    const params = new URLSearchParams();
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined) {
+          params.append(key, String(value));
+        }
+      });
+    }
+
+    const query = params.toString();
+    return this.fetch<ApiResponse<Tag[]>>(`/tags${query ? `?${query}` : ''}`);
+  }
+
+  async getTag(id: string): Promise<ApiResponse<Tag>> {
+    return this.fetch<ApiResponse<Tag>>(`/tags/${id}`);
+  }
+
+  async createTag(data: CreateTagDto): Promise<ApiResponse<Tag>> {
     return this.fetch<ApiResponse<Tag>>('/tags', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async updateTag(id: string, data: UpdateTagDto): Promise<ApiResponse<Tag>> {
+    return this.fetch<ApiResponse<Tag>>(`/tags/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteTag(id: string): Promise<ApiResponse<void>> {
+    return this.fetch<ApiResponse<void>>(`/tags/${id}`, {
+      method: 'DELETE',
     });
   }
 

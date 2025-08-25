@@ -54,9 +54,7 @@ export interface CreateAchievementDto {
   tags: string[];
 }
 
-export interface UpdateAchievementDto extends Partial<CreateAchievementDto> {
-  id: string;
-}
+export interface UpdateAchievementDto extends Partial<CreateAchievementDto> {}
 
 export interface AchievementFilters {
   search?: string;
@@ -67,12 +65,25 @@ export interface AchievementFilters {
   priority?: 'low' | 'medium' | 'high';
   sortBy?: 'title' | 'startDate' | 'createdAt' | 'priority';
   sortOrder?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
 }
 
+// Standard API response format for most endpoints
 export interface ApiResponse<T> {
-  data: T;
+  success: boolean;
+  data?: T;
   message?: string;
   error?: string;
+}
+
+// Achievements endpoint uses a different format
+export interface AchievementResponse<T> {
+  data: T;
+  total?: number;
+  page?: number;
+  pageSize?: number;
+  totalPages?: number;
 }
 
 export interface PaginatedResponse<T> {
@@ -81,4 +92,44 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+// Category DTOs  
+export interface CreateCategoryDto {
+  name: string;
+  color?: string;
+}
+
+export interface UpdateCategoryDto {
+  name?: string;
+  color?: string;
+}
+
+export interface CategoryWithStats extends Category {
+  achievementCount: number;
+}
+
+export interface CategoryFilters {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+// Tag DTOs
+export interface CreateTagDto {
+  name: string;
+}
+
+export interface UpdateTagDto {
+  name?: string;
+}
+
+export interface TagWithStats extends Tag {
+  usageCount: number;
+}
+
+export interface TagFilters {
+  search?: string;
+  page?: number;
+  pageSize?: number;
 }
