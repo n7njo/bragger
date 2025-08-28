@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+resources:
+  - redis-deployment.yaml
+  - adminer-deployment.yaml
+
+patchesStrategicMerge:
+  - dev-configmap.yaml
+
+commonLabels:
+  environment: development
+
+namespace: bragger
+
+images:
+  - name: bragger-backend
+    newTag: latest
+  - name: bragger-frontend  
+    newTag: latest

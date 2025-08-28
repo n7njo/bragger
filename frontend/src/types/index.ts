@@ -20,7 +20,7 @@ export interface Achievement {
 export interface Category {
   id: string;
   name: string;
-  color?: string;
+  color: string | null;
   createdAt: string;
 }
 
@@ -54,7 +54,9 @@ export interface CreateAchievementDto {
   tags: string[];
 }
 
-export interface UpdateAchievementDto extends Partial<CreateAchievementDto> {}
+export interface UpdateAchievementDto extends Partial<Omit<CreateAchievementDto, 'tags'>> {
+  tags?: string[];
+}
 
 export interface AchievementFilters {
   search?: string;
@@ -94,19 +96,22 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-// Category DTOs  
+// Category DTOs
 export interface CreateCategoryDto {
   name: string;
-  color?: string;
+  color?: string | null;
 }
 
 export interface UpdateCategoryDto {
   name?: string;
-  color?: string;
+  color?: string | null;
 }
 
 export interface CategoryWithStats extends Category {
   achievementCount: number;
+  _count?: {
+    achievements: number;
+  };
 }
 
 export interface CategoryFilters {

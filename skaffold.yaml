@@ -1,0 +1,45 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: bragger
+build:
+  artifacts:
+    - image: bragger-backend
+      context: ./backend
+      docker:
+        dockerfile: Dockerfile
+    - image: bragger-frontend
+      context: ./frontend
+      docker:
+        dockerfile: Dockerfile
+  local:
+    push: false
+    useBuildkit: true
+manifests:
+  kustomize:
+    paths:
+      - k8s/overlays/development
+deploy:
+  kubectl: {}
+portForward:
+  - resourceType: service
+    resourceName: frontend-service
+    namespace: bragger
+    port: 80
+    localPort: 30000
+  - resourceType: service
+    resourceName: backend-service
+    namespace: bragger
+    port: 3001
+    localPort: 30001
+  - resourceType: service
+    resourceName: adminer-service
+    namespace: bragger
+    port: 8080
+    localPort: 30002
+profiles:
+  - name: production
+    manifests:
+      kustomize:
+        paths:
+          - k8s/overlays/production

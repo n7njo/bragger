@@ -1,14 +1,81 @@
-import React from 'react';
 import { Trophy, Calendar, Tag, TrendingUp } from 'lucide-react';
+import { useAchievements, useCategories } from '../hooks';
+import { LoadingGrid } from '../components/ui/LoadingCard';
+import { ErrorState } from '../components/ui/ErrorState';
 
 export function Dashboard() {
-  // Mock data - will be replaced with real data later
+  const { data: achievementsResponse, isLoading: achievementsLoading, isError: achievementsError } = useAchievements({ pageSize: 100 });
+  const { data: categoriesResponse, isLoading: categoriesLoading, isError: categoriesError } = useCategories();
+  
+  const achievements = achievementsResponse?.data || [];
+  const categories = categoriesResponse?.data || [];
+  
+  // Calculate this year's achievements
+  const currentYear = new Date().getFullYear();
+  const thisYearAchievements = achievements.filter(a => 
+    new Date(a.startDate).getFullYear() === currentYear
+  );
+
+  // Calculate recent achievements (last 30 days)  
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentAchievements = achievements.filter(a => 
+    new Date(a.createdAt) >= thirtyDaysAgo
+  );
+
   const stats = [
-    { name: 'Total Achievements', value: '12', icon: Trophy, change: '+2 this month' },
-    { name: 'This Year', value: '8', icon: Calendar, change: '+3 this quarter' },
-    { name: 'Categories', value: '4', icon: Tag, change: 'Development, Leadership, etc.' },
-    { name: 'Growth', value: '25%', icon: TrendingUp, change: 'vs last year' },
+    { 
+      name: 'Total Achievements', 
+      value: achievements.length.toString(), 
+      icon: Trophy, 
+      change: `+${recentAchievements.length} this month` 
+    },
+    { 
+      name: 'This Year', 
+      value: thisYearAchievements.length.toString(), 
+      icon: Calendar, 
+      change: `${Math.round((thisYearAchievements.length / Math.max(achievements.length, 1)) * 100)}% of total` 
+    },
+    { 
+      name: 'Categories', 
+      value: categories.length.toString(), 
+      icon: Tag, 
+      change: categories.slice(0, 2).map(c => c.name).join(', ') + (categories.length > 2 ? '...' : '')
+    },
+    { 
+      name: 'Avg Duration', 
+      value: achievements.length > 0 ? `${Math.round(achievements.reduce((sum, a) => sum + (a.durationHours || 0), 0) / achievements.length)}h` : '0h',
+      icon: TrendingUp, 
+      change: 'per achievement' 
+    },
   ];
+
+  if (achievementsLoading || categoriesLoading) {
+    return (
+      <div className="p-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-2 text-gray-600">Overview of your professional achievements</p>
+        </div>
+        <LoadingGrid count={4} />
+      </div>
+    );
+  }
+
+  if (achievementsError || categoriesError) {
+    return (
+      <div className="p-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-2 text-gray-600">Overview of your professional achievements</p>
+        </div>
+        <ErrorState
+          title="Failed to load dashboard data"
+          message="Unable to fetch your achievements and categories."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -40,44 +107,42 @@ export function Dashboard() {
       {/* Recent Achievements */}
       <div className="card">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Achievements</h2>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0">
-            <div>
-              <h3 className="text-sm font-medium text-gray-900">
-                Implemented new authentication system
-              </h3>
-              <p className="text-sm text-gray-500">Development • 2 weeks ago</p>
-            </div>
-            <div className="text-right">
-              <div className="text-sm font-medium text-gray-900">40 hours</div>
-              <div className="text-xs text-gray-500">High priority</div>
-            </div>
+        {achievements.length === 0 ? (
+          <div className="text-center py-8">
+            <Trophy className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-500">No achievements yet</p>
+            <p className="text-sm text-gray-400">Start documenting your accomplishments!</p>
           </div>
-          <div className="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0">
-            <div>
-              <h3 className="text-sm font-medium text-gray-900">
-                Led team presentation to stakeholders
-              </h3>
-              <p className="text-sm text-gray-500">Leadership • 1 month ago</p>
-            </div>
-            <div className="text-right">
-              <div className="text-sm font-medium text-gray-900">8 hours</div>
-              <div className="text-xs text-gray-500">Medium priority</div>
-            </div>
+        ) : (
+          <div className="space-y-4">
+            {achievements.slice(0, 5).map((achievement, index) => {
+              const category = categories.find(c => c.id === achievement.categoryId);
+              const createdDate = new Date(achievement.createdAt);
+              const timeAgo = Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+              
+              return (
+                <div key={achievement.id} className={`flex items-center justify-between py-3 ${index < 4 ? 'border-b border-gray-200' : ''}`}>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">
+                      {achievement.title}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {category?.name || 'Uncategorized'} • {timeAgo === 0 ? 'Today' : timeAgo === 1 ? '1 day ago' : `${timeAgo} days ago`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-gray-900">
+                      {achievement.durationHours ? `${achievement.durationHours}h` : '—'}
+                    </div>
+                    <div className="text-xs text-gray-500 capitalize">
+                      {achievement.priority.toLowerCase()} priority
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <h3 className="text-sm font-medium text-gray-900">
-                Optimized database performance
-              </h3>
-              <p className="text-sm text-gray-500">Development • 1 month ago</p>
-            </div>
-            <div className="text-right">
-              <div className="text-sm font-medium text-gray-900">24 hours</div>
-              <div className="text-xs text-gray-500">High priority</div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

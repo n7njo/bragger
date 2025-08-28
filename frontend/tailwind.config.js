@@ -23,7 +23,7 @@ export default {
     },
   },
   plugins: [
-    '@tailwindcss/forms',
-    '@tailwindcss/typography',
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
   ],
 }

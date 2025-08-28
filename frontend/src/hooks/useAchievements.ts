@@ -6,14 +6,14 @@ import {
   UseMutationOptions
 } from '@tanstack/react-query'
 import { apiClient } from '../services/api'
-import { 
-  Achievement, 
-  AchievementFilters, 
-  CreateAchievementDto, 
+import {
+  Achievement,
+  AchievementFilters,
   UpdateAchievementDto,
   AchievementResponse,
-  ApiResponse 
+  ApiResponse
 } from '../types'
+import { AchievementFormData } from '../schemas/achievementSchema'
 
 // Query keys for caching
 export const achievementKeys = {
@@ -51,12 +51,12 @@ export function useAchievement(
 
 // Create achievement mutation
 export function useCreateAchievement(
-  options?: UseMutationOptions<ApiResponse<Achievement>, Error, CreateAchievementDto>
+  options?: UseMutationOptions<ApiResponse<Achievement>, Error, AchievementFormData>
 ) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateAchievementDto) => apiClient.createAchievement(data),
+    mutationFn: (data: AchievementFormData) => apiClient.createAchievement(data),
     onSuccess: (data) => {
       // Invalidate and refetch achievements list
       queryClient.invalidateQueries({ queryKey: achievementKeys.lists() })

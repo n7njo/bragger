@@ -17,7 +17,7 @@ export interface Achievement {
 export interface Category {
   id: string;
   name: string;
-  color?: string;
+  color: string | null;
   createdAt: Date;
 }
 
@@ -85,16 +85,19 @@ export interface PaginatedResponse<T> {
 // Category DTOs
 export interface CreateCategoryDto {
   name: string;
-  color?: string;
+  color?: string | null;
 }
 
 export interface UpdateCategoryDto {
   name?: string;
-  color?: string;
+  color?: string | null;
 }
 
 export interface CategoryWithStats extends Category {
   achievementCount: number;
+  _count?: {
+    achievements: number;
+  };
 }
 
 export interface CategoryFilters {

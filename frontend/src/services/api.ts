@@ -1,9 +1,8 @@
-import { 
-  Achievement, 
-  Category, 
-  Tag, 
-  CreateAchievementDto, 
-  UpdateAchievementDto, 
+import {
+  Achievement,
+  Category,
+  Tag,
+  UpdateAchievementDto,
   AchievementFilters,
   CreateCategoryDto,
   UpdateCategoryDto,
@@ -11,17 +10,17 @@ import {
   CreateTagDto,
   UpdateTagDto,
   TagFilters,
-  ApiResponse, 
-  AchievementResponse,
-  PaginatedResponse 
-} from '../types';
+  ApiResponse,
+  AchievementResponse
+} from '../types'
+import { AchievementFormData } from '../schemas/achievementSchema';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 class ApiClient {
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     try {
       const response = await fetch(url, {
         headers: {
@@ -33,15 +32,17 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ API Error:', response.status, errorData);
         const error = new Error(errorData.error || `HTTP error! status: ${response.status}`);
         (error as any).status = response.status;
         (error as any).data = errorData;
         throw error;
       }
 
-      return await response.json();
+      const data = await response.json();
+      return data;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('💥 API request failed:', endpoint, error);
       throw error;
     }
   }
@@ -70,7 +71,7 @@ class ApiClient {
     return this.fetch<ApiResponse<Achievement>>(`/achievements/${id}`);
   }
 
-  async createAchievement(data: CreateAchievementDto): Promise<ApiResponse<Achievement>> {
+  async createAchievement(data: AchievementFormData): Promise<ApiResponse<Achievement>> {
     return this.fetch<ApiResponse<Achievement>>('/achievements', {
       method: 'POST',
       body: JSON.stringify(data),

@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: bragger
+  labels:
+    app: bragger
+    component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bragger
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: bragger
+        component: backend
+    spec:
+      initContainers:
+      - name: migration
+        image: bragger-backend:latest
+        imagePullPolicy: Never
+        command: 
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for database to be ready..."
+          until nc -z postgres-service.bragger.svc.cluster.local 5432; do
+            echo "Database not ready, waiting..."
+            sleep 3
+          done
+          echo "Database ready, running migrations..."
+          npx prisma migrate deploy
+          echo "Running database seed..."
+          npx prisma db seed
+          echo "Migration and seeding completed."
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bragger-secrets
+              key: database-url
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      containers:
+      - name: backend
+        image: bragger-backend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3001
+          name: http
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: bragger-config
+              key: NODE_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: bragger-config
+              key: PORT
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bragger-secrets
+              key: database-url
+        - name: FRONTEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: bragger-config
+              key: FRONTEND_URL
+        - name: MAX_FILE_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: bragger-config
+              key: MAX_FILE_SIZE
+        - name: UPLOAD_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: bragger-config
+              key: UPLOAD_PATH
+        volumeMounts:
+        - name: uploads-volume
+          mountPath: /app/uploads
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+      volumes:
+      - name: uploads-volume
+        persistentVolumeClaim:
+          claimName: uploads-pvc
+      restartPolicy: Always

@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adminer
+  namespace: bragger
+  labels:
+    app: bragger
+    component: adminer
+    environment: development
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bragger
+      component: adminer
+  template:
+    metadata:
+      labels:
+        app: bragger
+        component: adminer
+    spec:
+      containers:
+      - name: adminer
+        image: adminer:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adminer-service
+  namespace: bragger
+  labels:
+    app: bragger
+    component: adminer
+    environment: development
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30002
+    protocol: TCP
+    name: http
+  selector:
+    app: bragger
+    component: adminer

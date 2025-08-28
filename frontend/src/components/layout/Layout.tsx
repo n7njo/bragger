@@ -1,12 +1,11 @@
-import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Trophy, Plus, BarChart3, Settings } from 'lucide-react';
+import { Trophy, BarChart3, Settings } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
   { name: 'Achievements', href: '/achievements', icon: Trophy },
-  { name: 'Add Achievement', href: '/achievements/new', icon: Plus },
+
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

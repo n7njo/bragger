@@ -1,0 +1,156 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seed-database
+  namespace: bragger
+  labels:
+    app: bragger
+    component: seed
+spec:
+  template:
+    metadata:
+      labels:
+        app: bragger
+        component: seed
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+      - name: wait-for-db
+        image: bragger-backend:latest
+        imagePullPolicy: Never
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for database to be ready..."
+          until nc -z postgres-service.bragger.svc.cluster.local 5432; do
+            echo "Database not ready, waiting..."
+            sleep 3
+          done
+          echo "Database ready!"
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bragger-secrets
+              key: database-url
+      containers:
+      - name: seed
+        image: bragger-backend:latest
+        imagePullPolicy: Never
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Running database seed..."
+          node -e "
+            const { PrismaClient } = require('@prisma/client');
+            
+            const prisma = new PrismaClient();
+            
+            async function main() {
+              console.log('🌱 Starting database seed...');
+            
+              // Create categories
+              const categories = await Promise.all([
+                prisma.category.upsert({
+                  where: { name: 'Development' },
+                  update: {},
+                  create: {
+                    name: 'Development',
+                    color: '#3b82f6',
+                  },
+                }),
+                prisma.category.upsert({
+                  where: { name: 'Leadership' },
+                  update: {},
+                  create: {
+                    name: 'Leadership',
+                    color: '#10b981',
+                  },
+                }),
+                prisma.category.upsert({
+                  where: { name: 'Innovation' },
+                  update: {},
+                  create: {
+                    name: 'Innovation',
+                    color: '#f59e0b',
+                  },
+                }),
+                prisma.category.upsert({
+                  where: { name: 'Problem Solving' },
+                  update: {},
+                  create: {
+                    name: 'Problem Solving',
+                    color: '#ef4444',
+                  },
+                }),
+              ]);
+            
+              console.log(\`✅ Created \${categories.length} categories\`);
+            
+              // Create tags
+              const tags = await Promise.all([
+                prisma.tag.upsert({
+                  where: { name: 'React' },
+                  update: {},
+                  create: { name: 'React' },
+                }),
+                prisma.tag.upsert({
+                  where: { name: 'TypeScript' },
+                  update: {},
+                  create: { name: 'TypeScript' },
+                }),
+                prisma.tag.upsert({
+                  where: { name: 'Leadership' },
+                  update: {},
+                  create: { name: 'Leadership' },
+                }),
+                prisma.tag.upsert({
+                  where: { name: 'Performance' },
+                  update: {},
+                  create: { name: 'Performance' },
+                }),
+                prisma.tag.upsert({
+                  where: { name: 'Security' },
+                  update: {},
+                  create: { name: 'Security' },
+                }),
+                prisma.tag.upsert({
+                  where: { name: 'Docker' },
+                  update: {},
+                  create: { name: 'Docker' },
+                }),
+                prisma.tag.upsert({
+                  where: { name: 'Database' },
+                  update: {},
+                  create: { name: 'Database' },
+                }),
+              ]);
+            
+              console.log(\`✅ Created \${tags.length} tags\`);
+              console.log('🎉 Database seed completed successfully!');
+            }
+            
+            main()
+              .catch((e) => {
+                console.error('❌ Seed failed:', e);
+                process.exit(1);
+              })
+              .finally(async () => {
+                await prisma.\$disconnect();
+              });
+          "
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bragger-secrets
+              key: database-url
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

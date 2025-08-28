@@ -51,35 +51,37 @@ describe('AchievementCard', () => {
     expect(screen.getByText(/Team of 5/)).toBeInTheDocument()
   })
 
-  it('displays skills with overflow indicator', () => {
-    render(<AchievementCard achievement={mockAchievement} />)
+   it('displays skills with overflow indicator', () => {
+     render(<AchievementCard achievement={mockAchievement} />)
 
-    // First 3 skills should be visible
-    expect(screen.getByText('React')).toBeInTheDocument()
-    expect(screen.getByText('TypeScript')).toBeInTheDocument()
-    expect(screen.getByText('Node.js')).toBeInTheDocument()
-    
-    // Should show +1 more indicator for 4th skill
-    expect(screen.getByText('+1 more')).toBeInTheDocument()
-    
-    // 4th skill should not be directly visible
-    expect(screen.queryByText('MongoDB')).not.toBeInTheDocument()
-  })
+     // First 3 skills should be visible
+     expect(screen.getByText('React')).toBeInTheDocument()
+     expect(screen.getByText('TypeScript')).toBeInTheDocument()
+     expect(screen.getByText('Node.js')).toBeInTheDocument()
 
-  it('displays tags with overflow indicator', () => {
-    render(<AchievementCard achievement={mockAchievement} />)
+     // Should show +1 more indicator for 4th skill
+     const overflowIndicators = screen.getAllByText('+1 more')
+     expect(overflowIndicators).toHaveLength(2) // One for skills, one for tags
 
-    // First 3 tags should be visible
-    expect(screen.getByText('Frontend')).toBeInTheDocument()
-    expect(screen.getByText('Backend')).toBeInTheDocument()
-    expect(screen.getByText('Database')).toBeInTheDocument()
-    
-    // Should show +1 more indicator for 4th tag
-    expect(screen.getByText('+1 more')).toBeInTheDocument()
-    
-    // 4th tag should not be directly visible
-    expect(screen.queryByText('API')).not.toBeInTheDocument()
-  })
+     // 4th skill should not be directly visible
+     expect(screen.queryByText('MongoDB')).not.toBeInTheDocument()
+   })
+
+   it('displays tags with overflow indicator', () => {
+     render(<AchievementCard achievement={mockAchievement} />)
+
+     // First 3 tags should be visible
+     expect(screen.getByText('Frontend')).toBeInTheDocument()
+     expect(screen.getByText('Backend')).toBeInTheDocument()
+     expect(screen.getByText('Database')).toBeInTheDocument()
+
+     // Should show +1 more indicator for 4th tag
+     const overflowIndicators = screen.getAllByText('+1 more')
+     expect(overflowIndicators).toHaveLength(2) // One for skills, one for tags
+
+     // 4th tag should not be directly visible
+     expect(screen.queryByText('API')).not.toBeInTheDocument()
+   })
 
   it('handles achievement without optional fields', () => {
     const minimalAchievement: Achievement = {

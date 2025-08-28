@@ -56,16 +56,15 @@ export const achievementSchema = z.object({
     .max(1000, 'Team size seems too high')
     .optional(),
     
-  priority: z
-    .enum(['low', 'medium', 'high'], {
-      required_error: 'Priority is required',
-      invalid_type_error: 'Priority must be low, medium, or high'
-    }),
+   priority: z
+     .enum(['low', 'medium', 'high'], {
+       message: 'Priority must be low, medium, or high'
+     }),
     
-  tags: z
-    .array(z.string())
-    .max(10, 'Maximum 10 tags allowed')
-    .default([])
+   tags: z
+     .array(z.string())
+     .max(10, 'Maximum 10 tags allowed')
+     .min(0)
 }).refine(
   (data) => {
     if (!data.startDate || !data.endDate) return true

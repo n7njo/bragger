@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bragger
+  labels:
+    name: bragger
+    app: bragger
+    environment: development

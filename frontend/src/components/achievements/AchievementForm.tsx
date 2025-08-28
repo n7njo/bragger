@@ -1,20 +1,28 @@
 import { useForm, Controller } from 'react-hook-form'
+import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { achievementSchema, AchievementFormData } from '../../schemas/achievementSchema'
-import { CreateAchievementDto, UpdateAchievementDto, Achievement } from '../../types'
+import { Achievement } from '../../types'
 import { useCategories } from '../../hooks'
 import { Input } from '../ui/Input'
 import { TextArea } from '../ui/TextArea'
 import { Select } from '../ui/Select'
 import { TagInput } from '../ui/TagInput'
 import { Button } from '../ui/Button'
+import { ImageUpload } from '../ui/ImageUpload'
 
 interface AchievementFormProps {
   initialData?: Achievement
   isLoading?: boolean
-  onSubmit: (data: CreateAchievementDto | UpdateAchievementDto) => void
+  onSubmit: (data: AchievementFormData, images?: ImageFile[]) => void
   onCancel?: () => void
   submitLabel?: string
+}
+
+interface ImageFile {
+  file: File
+  preview: string
+  id: string
 }
 
 export function AchievementForm({
@@ -26,6 +34,7 @@ export function AchievementForm({
 }: AchievementFormProps) {
   const { data: categoriesResponse, isLoading: categoriesLoading } = useCategories()
   const categories = categoriesResponse?.data || []
+  const [images, setImages] = useState<ImageFile[]>([])
 
   const {
     register,
@@ -53,12 +62,17 @@ export function AchievementForm({
   const watchedStartDate = watch('startDate')
 
   const handleFormSubmit = (data: AchievementFormData) => {
+    console.log('Form submitted with data:', data)
+    console.log('Form has', images.length, 'images')
+    
     const formattedData = {
       ...data,
       skillsUsed: data.skillsUsed.filter(skill => skill.trim() !== ''),
       tags: data.tags.filter(tag => tag.trim() !== '')
     }
-    onSubmit(formattedData)
+    
+    console.log('Calling onSubmit with formatted data:', formattedData)
+    onSubmit(formattedData, images.length > 0 ? images : undefined)
   }
 
   const categoryOptions = categories.map(category => ({
@@ -201,6 +215,18 @@ export function AchievementForm({
                 maxTags={10}
               />
             )}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <ImageUpload
+            value={images}
+            onChange={setImages}
+            disabled={isSubmitting || isLoading}
+            label="Screenshots & Images"
+            helperText="Upload screenshots, diagrams, or photos to showcase your achievement"
+            maxImages={8}
+            maxSize={5}
           />
         </div>
       </div>

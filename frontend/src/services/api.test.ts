@@ -130,7 +130,9 @@ describe('ApiClient', () => {
         await apiClient.getAchievement('non-existent')
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
-        expect(error.message).toContain('Achievement not found')
+        if (error instanceof Error) {
+          expect(error.message).toContain('Achievement not found')
+        }
       }
     })
   })

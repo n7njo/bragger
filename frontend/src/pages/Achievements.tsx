@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Plus, Search, Filter, Trophy } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { useAchievements } from '../hooks';
+import { Modal } from '../components/ui/Modal';
+import { useAchievements, useCreateAchievement, useUpdateAchievement, useDeleteAchievement } from '../hooks';
 import { AchievementCard } from '../components/achievements/AchievementCard';
+import { AchievementForm } from '../components/achievements/AchievementForm';
 import { LoadingGrid } from '../components/ui/LoadingCard';
 import { ErrorState } from '../components/ui/ErrorState';
-import { AchievementFilters } from '../types';
+import { AchievementFilters, CreateAchievementDto, UpdateAchievementDto, Achievement } from '../types';
 
 export function Achievements() {
   const [filters, setFilters] = useState<AchievementFilters>({
@@ -13,6 +15,9 @@ export function Achievements() {
     pageSize: 12
   })
   const [searchTerm, setSearchTerm] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null)
+  const [deletingAchievement, setDeletingAchievement] = useState<Achievement | null>(null)
 
   const { 
     data: achievementsResponse, 
@@ -21,6 +26,10 @@ export function Achievements() {
     error,
     refetch 
   } = useAchievements(filters)
+
+  const createAchievementMutation = useCreateAchievement()
+  const updateAchievementMutation = useUpdateAchievement()
+  const deleteAchievementMutation = useDeleteAchievement()
 
   const achievements = achievementsResponse?.data || []
   const totalCount = achievementsResponse?.total || 0
@@ -39,9 +48,111 @@ export function Achievements() {
     }
   }
 
-  const handleAchievementClick = (achievementId: string) => {
-    console.log('Navigate to achievement:', achievementId)
+  const handleAchievementClick = (_achievementId: string) => {
     // TODO: Navigate to achievement detail page
+  }
+
+  const handleCreateAchievement = async (data: CreateAchievementDto, images?: any[]) => {
+    try {
+      const result = await createAchievementMutation.mutateAsync(data)
+      
+      // If images are provided and achievement was created successfully, upload them
+      if (images && images.length > 0 && result.data?.id) {
+        const fileList = new DataTransfer()
+        images.forEach(img => fileList.items.add(img.file))
+        
+        try {
+          // Note: This will need the backend implementation to work
+          // await uploadImagesMutation.mutateAsync({
+          //   achievementId: result.data.id,
+          //   files: fileList.files
+          // })
+          console.log('Images would be uploaded for achievement:', result.data.id)
+        } catch (uploadError) {
+          console.error('Error uploading images:', uploadError)
+          // Achievement was created successfully, but images failed
+          // We could show a warning here
+        }
+      }
+      
+      setIsModalOpen(false)
+      refetch()
+    } catch (error) {
+      console.error('Error creating achievement:', error)
+    }
+  }
+
+  const handleEditAchievement = (achievement: Achievement) => {
+    setEditingAchievement(achievement)
+  }
+
+  const handleUpdateAchievement = async (data: CreateAchievementDto, images?: any[]) => {
+    if (!editingAchievement) {
+      console.error('No achievement being edited')
+      return
+    }
+    
+    console.log('Updating achievement:', editingAchievement.id, 'with data:', data)
+    
+    try {
+      // Convert CreateAchievementDto to UpdateAchievementDto
+      const updateData: UpdateAchievementDto = {
+        title: data.title,
+        description: data.description,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        durationHours: data.durationHours,
+        categoryId: data.categoryId,
+        impact: data.impact,
+        skillsUsed: data.skillsUsed,
+        teamSize: data.teamSize,
+        priority: data.priority,
+        tags: data.tags
+      }
+      
+      const result = await updateAchievementMutation.mutateAsync({
+        id: editingAchievement.id,
+        data: updateData
+      })
+      
+      console.log('Update successful:', result)
+      
+      // If images are provided, upload them
+      if (images && images.length > 0) {
+        const fileList = new DataTransfer()
+        images.forEach(img => fileList.items.add(img.file))
+        
+        try {
+          // Note: This will need the backend implementation to work
+          console.log('Images would be uploaded for achievement:', editingAchievement.id)
+        } catch (uploadError) {
+          console.error('Error uploading images:', uploadError)
+        }
+      }
+      
+      setEditingAchievement(null)
+      refetch()
+    } catch (error) {
+      console.error('Error updating achievement:', error)
+      alert('Error updating achievement. Please check the console for details.')
+      // Don't close the modal on error so user can retry
+    }
+  }
+
+  const handleDeleteAchievement = (achievement: Achievement) => {
+    setDeletingAchievement(achievement)
+  }
+
+  const confirmDelete = async () => {
+    if (!deletingAchievement) return
+    
+    try {
+      await deleteAchievementMutation.mutateAsync(deletingAchievement.id)
+      setDeletingAchievement(null)
+      refetch()
+    } catch (error) {
+      console.error('Error deleting achievement:', error)
+    }
   }
 
   return (
@@ -57,7 +168,7 @@ export function Achievements() {
               )}
             </p>
           </div>
-          <Button className="flex items-center">
+          <Button className="flex items-center" onClick={() => setIsModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Achievement
           </Button>
@@ -120,7 +231,7 @@ export function Achievements() {
               : 'Start documenting your professional accomplishments to build your success story.'
             }
           </p>
-          <Button>
+          <Button onClick={() => filters.search ? setFilters({page: 1, pageSize: 12}) : setIsModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             {filters.search ? 'Clear Search' : 'Add Your First Achievement'}
           </Button>
@@ -134,10 +245,80 @@ export function Achievements() {
               key={achievement.id}
               achievement={achievement}
               onClick={() => handleAchievementClick(achievement.id)}
+              onEdit={handleEditAchievement}
+              onDelete={handleDeleteAchievement}
             />
           ))}
         </div>
       )}
+
+      {/* Add Achievement Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Add New Achievement"
+        size="lg"
+      >
+        <AchievementForm
+          onSubmit={handleCreateAchievement}
+          onCancel={() => setIsModalOpen(false)}
+          isLoading={createAchievementMutation.isPending}
+          submitLabel="Create Achievement"
+        />
+      </Modal>
+
+      {/* Edit Achievement Modal */}
+      <Modal
+        isOpen={!!editingAchievement}
+        onClose={() => setEditingAchievement(null)}
+        title="Edit Achievement"
+        size="lg"
+      >
+        {editingAchievement && (
+          <AchievementForm
+            initialData={editingAchievement}
+            onSubmit={handleUpdateAchievement}
+            onCancel={() => setEditingAchievement(null)}
+            isLoading={updateAchievementMutation.isPending}
+            submitLabel="Update Achievement"
+          />
+        )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deletingAchievement}
+        onClose={() => setDeletingAchievement(null)}
+        title="Delete Achievement"
+        size="sm"
+      >
+        {deletingAchievement && (
+          <div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{deletingAchievement.title}"? This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end space-x-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDeletingAchievement(null)}
+                disabled={deleteAchievementMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={confirmDelete}
+                disabled={deleteAchievementMutation.isPending}
+                loading={deleteAchievementMutation.isPending}
+              >
+                Delete Achievement
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

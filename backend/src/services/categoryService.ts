@@ -104,7 +104,17 @@ export class CategoryService {
     const where = this.buildWhereClause(filters);
 
     // Build query options
-    const queryOptions: any = {
+    const queryOptions: {
+      include: {
+        _count: {
+          select: { achievements: true }
+        }
+      },
+      orderBy: { name: 'asc' },
+      skip: number,
+      take: number,
+      where?: any
+    } = {
       include: {
         _count: {
           select: { achievements: true }
@@ -122,12 +132,12 @@ export class CategoryService {
 
     // Execute queries
     const [rawData, total] = await Promise.all([
-      prisma.category.findMany(queryOptions),
+      prisma.category.findMany(queryOptions) as Promise<CategoryWithCount[]>,
       prisma.category.count(Object.keys(where).length > 0 ? { where } : undefined)
     ]);
 
     // Transform data to include achievementCount
-    const data: CategoryWithStats[] = rawData.map((category: CategoryWithCount) => ({
+    const data: CategoryWithStats[] = rawData.map((category) => ({
       id: category.id,
       name: category.name,
       color: category.color,

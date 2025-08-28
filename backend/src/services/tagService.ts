@@ -106,7 +106,17 @@ export class TagService {
     const where = this.buildWhereClause(filters);
 
     // Build query options
-    const queryOptions: any = {
+    const queryOptions: {
+      include: {
+        _count: {
+          select: { achievements: true }
+        }
+      },
+      orderBy: { name: 'asc' },
+      skip: number,
+      take: number,
+      where?: any
+    } = {
       include: {
         _count: {
           select: { achievements: true }
@@ -124,12 +134,12 @@ export class TagService {
 
     // Execute queries
     const [rawData, total] = await Promise.all([
-      prisma.tag.findMany(queryOptions),
+      prisma.tag.findMany(queryOptions) as Promise<TagWithCount[]>,
       prisma.tag.count(Object.keys(where).length > 0 ? { where } : undefined)
     ]);
 
     // Transform data to include usageCount
-    const data: TagWithStats[] = rawData.map((tag: TagWithCount) => ({
+    const data: TagWithStats[] = rawData.map((tag) => ({
       id: tag.id,
       name: tag.name,
       createdAt: tag.createdAt,

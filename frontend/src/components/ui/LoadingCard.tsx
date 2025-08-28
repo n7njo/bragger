@@ -26,10 +26,14 @@ export function LoadingCard() {
   )
 }
 
-export function LoadingGrid() {
+interface LoadingGridProps {
+  count?: number;
+}
+
+export function LoadingGrid({ count = 6 }: LoadingGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {Array.from({ length: 6 }).map((_, i) => (
+      {Array.from({ length: count }).map((_, i) => (
         <LoadingCard key={i} />
       ))}
     </div>

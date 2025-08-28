@@ -1,13 +1,34 @@
-import { Calendar, Clock, Users } from 'lucide-react'
+import { Calendar, Clock, Users, Edit2, Trash2, MoreVertical, Image as ImageIcon } from 'lucide-react'
 import { Achievement } from '../../types'
 import { format } from 'date-fns'
+import { useState, useEffect, useRef } from 'react'
+import { ImageViewer } from '../ui/ImageViewer'
 
 interface AchievementCardProps {
   achievement: Achievement
   onClick?: () => void
+  onEdit?: (achievement: Achievement) => void
+  onDelete?: (achievement: Achievement) => void
 }
 
-export function AchievementCard({ achievement, onClick }: AchievementCardProps) {
+export function AchievementCard({ achievement, onClick, onEdit, onDelete }: AchievementCardProps) {
+  const [showActions, setShowActions] = useState(false)
+  const [showImageViewer, setShowImageViewer] = useState(false)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const actionsRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (actionsRef.current && !actionsRef.current.contains(event.target as Node)) {
+        setShowActions(false)
+      }
+    }
+
+    if (showActions) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showActions])
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'MMM yyyy')
@@ -33,28 +54,101 @@ export function AchievementCard({ achievement, onClick }: AchievementCardProps) 
     return priority.charAt(0).toUpperCase() + priority.slice(1)
   }
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (!e.defaultPrevented && onClick) {
+      onClick()
+    }
+  }
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (onEdit) {
+      onEdit(achievement)
+    }
+  }
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (onDelete) {
+      onDelete(achievement)
+    }
+  }
+
+  const handleActionsClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setShowActions(!showActions)
+  }
+
+  const handleImageClick = (e: React.MouseEvent, imageIndex: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setSelectedImageIndex(imageIndex)
+    setShowImageViewer(true)
+  }
+
   return (
     <div 
-      className="card hover:shadow-lg transition-shadow cursor-pointer"
-      onClick={onClick}
+      className="card hover:shadow-lg transition-shadow cursor-pointer relative"
+      onClick={handleCardClick}
     >
+      {/* Actions Menu */}
+      {(onEdit || onDelete) && (
+        <div className="absolute top-3 right-3 z-10" ref={actionsRef}>
+          <button
+            onClick={handleActionsClick}
+            className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+            title="More actions"
+          >
+            <MoreVertical className="h-4 w-4 text-gray-500" />
+          </button>
+          
+          {showActions && (
+            <div className="absolute right-0 top-8 bg-white rounded-md shadow-lg border border-gray-200 py-1 min-w-[120px]">
+              {onEdit && (
+                <button
+                  onClick={handleEdit}
+                  className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={handleDelete}
+                  className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="mb-3">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-            {achievement.title}
-          </h3>
-          <div className="flex flex-col gap-1 ml-2">
-            {achievement.category && (
-              <span 
-                className="text-xs px-2 py-1 rounded-full text-white text-center"
-                style={{ backgroundColor: achievement.category.color || '#6B7280' }}
-              >
-                {achievement.category.name}
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex flex-col gap-2 flex-1 pr-8">
+            <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+              {achievement.title}
+            </h3>
+            <div className="flex gap-2">
+              {achievement.category && (
+                <span 
+                  className="text-xs px-2 py-1 rounded-full text-white"
+                  style={{ backgroundColor: achievement.category.color || '#6B7280' }}
+                >
+                  {achievement.category.name}
+                </span>
+              )}
+              <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(achievement.priority)}`}>
+                {getPriorityLabel(achievement.priority)}
               </span>
-            )}
-            <span className={`text-xs px-2 py-1 rounded-full text-center ${getPriorityColor(achievement.priority)}`}>
-              {getPriorityLabel(achievement.priority)}
-            </span>
+            </div>
           </div>
         </div>
         <p className="text-sm text-gray-600 mb-3 line-clamp-3">
@@ -104,6 +198,40 @@ export function AchievementCard({ achievement, onClick }: AchievementCardProps) 
         </div>
       )}
       
+      {/* Image Gallery Preview */}
+      {achievement.images && achievement.images.length > 0 && (
+        <div className="mb-3">
+          <div className="flex items-center space-x-2 mb-2">
+            <ImageIcon className="h-3 w-3 text-gray-400" />
+            <span className="text-xs text-gray-500">{achievement.images.length} image{achievement.images.length > 1 ? 's' : ''}</span>
+          </div>
+          <div className="grid grid-cols-3 gap-1">
+            {achievement.images.slice(0, 3).map((image, index) => (
+              <div 
+                key={image.id} 
+                className="aspect-square bg-gray-200 rounded overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={(e) => handleImageClick(e, index)}
+                title="Click to view image"
+              >
+                <img
+                  src={`/api/images/${image.filename}`}
+                  alt={image.originalName}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            ))}
+            {achievement.images.length > 3 && (
+              <div className="aspect-square bg-gray-100 rounded flex items-center justify-center">
+                <span className="text-xs text-gray-500 font-medium">
+                  +{achievement.images.length - 3}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {achievement.tags && achievement.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {achievement.tags.slice(0, 3).map((tag) => (
@@ -121,6 +249,14 @@ export function AchievementCard({ achievement, onClick }: AchievementCardProps) 
           )}
         </div>
       )}
+      
+      {/* Image Viewer Modal */}
+      <ImageViewer
+        images={achievement.images || []}
+        isOpen={showImageViewer}
+        onClose={() => setShowImageViewer(false)}
+        initialImageIndex={selectedImageIndex}
+      />
     </div>
   )
 }
