@@ -86,13 +86,15 @@ export function AchievementForm({
   const handleFormSubmit = (data: AchievementFormData) => {
     console.log('Form submitted with data:', data)
     console.log('Form has', images.length, 'images')
-    
+
     const formattedData = {
       ...data,
+      startDate: new Date(data.startDate).toISOString(),
+      endDate: data.endDate ? new Date(data.endDate).toISOString() : undefined,
       skillsUsed: data.skillsUsed.filter(skill => skill.trim() !== ''),
       tags: data.tags.filter(tag => tag.trim() !== '')
     }
-    
+
     console.log('Calling onSubmit with formatted data:', formattedData)
     onSubmit(formattedData, images.length > 0 ? images : undefined)
   }

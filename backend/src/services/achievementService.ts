@@ -303,7 +303,6 @@ export class AchievementService {
             categoryId: data.categoryId,
             impact: data.impact,
             skillsUsed: data.skillsUsed,
-
             status: data.status ? this.mapStatus(data.status) : undefined,
             githubUrl: data.githubUrl
           },

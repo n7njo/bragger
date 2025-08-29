@@ -47,7 +47,7 @@ export const achievementSchema = z.object({
     
   skillsUsed: z
     .array(z.string())
-    .min(1, 'At least one skill is required')
+    .min(0)
     .max(20, 'Maximum 20 skills allowed'),
     
 

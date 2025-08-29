@@ -81,6 +81,8 @@ export function Achievements() {
       refetch()
     } catch (error) {
       console.error('Error creating achievement:', error)
+      // Show user-friendly error message
+      alert(`Failed to create achievement: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -95,7 +97,7 @@ export function Achievements() {
     }
     
     console.log('Updating achievement:', editingAchievement.id, 'with data:', data)
-    
+
     try {
       // Convert CreateAchievementDto to UpdateAchievementDto
       const updateData: UpdateAchievementDto = {
@@ -107,17 +109,18 @@ export function Achievements() {
         categoryId: data.categoryId,
         impact: data.impact,
         skillsUsed: data.skillsUsed,
-
         status: data.status,
         githubUrl: data.githubUrl,
         tags: data.tags
       }
-      
+
+      console.log('Sending update data:', updateData)
+
       const result = await updateAchievementMutation.mutateAsync({
         id: editingAchievement.id,
         data: updateData
       })
-      
+
       console.log('Update successful:', result)
       
       // If images are provided, upload them
@@ -137,7 +140,9 @@ export function Achievements() {
       refetch()
     } catch (error) {
       console.error('Error updating achievement:', error)
-      alert('Error updating achievement. Please check the console for details.')
+      // Show user-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Failed to update achievement: ${errorMessage}`)
       // Don't close the modal on error so user can retry
     }
   }

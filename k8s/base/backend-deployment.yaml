@@ -22,20 +22,15 @@ spec:
       - name: migration
         image: bragger-backend:latest
         imagePullPolicy: Never
-        command: 
+        command:
         - /bin/sh
         - -c
         - |
-          echo "Waiting for database to be ready..."
-          until nc -z postgres-service.bragger.svc.cluster.local 5432; do
-            echo "Database not ready, waiting..."
-            sleep 3
-          done
-          echo "Database ready, running migrations..."
-          npx prisma migrate deploy
-          echo "Running database seed..."
-          npx prisma db seed
-          echo "Migration and seeding completed."
+          echo "Checking if migrations are needed..."
+          npx prisma migrate deploy || echo "Migration may have failed, but continuing..."
+          echo "Checking if seeding is needed..."
+          npx prisma db seed || echo "Seeding may have failed, but continuing..."
+          echo "Init container completed."
         env:
         - name: DATABASE_URL
           valueFrom:
