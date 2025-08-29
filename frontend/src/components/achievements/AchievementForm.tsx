@@ -72,7 +72,7 @@ export function AchievementForm({
         categoryId: initialData.categoryId || '',
         impact: initialData.impact || '',
         skillsUsed: initialData.skillsUsed || [],
-        status: initialData.status || 'idea',
+        status: (initialData.status as string)?.toLowerCase() || 'idea',
         githubUrl: initialData.githubUrl || '',
         tags: initialData.tags?.map(tag => tag.name) || []
       })
