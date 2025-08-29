@@ -165,25 +165,39 @@ export function AchievementForm({
           step="0.5"
         />
 
-        <Select
-          label="Category"
-          {...register('categoryId')}
-          options={categoryOptions}
-          error={errors.categoryId?.message}
-          required
-          disabled={isSubmitting || isLoading || categoriesLoading}
-          placeholder={categoriesLoading ? 'Loading categories...' : 'Select a category'}
+        <Controller
+          name="categoryId"
+          control={control}
+          render={({ field }) => (
+            <Select
+              label="Category"
+              value={field.value}
+              onChange={field.onChange}
+              options={categoryOptions}
+              error={errors.categoryId?.message}
+              required
+              disabled={isSubmitting || isLoading || categoriesLoading}
+              placeholder={categoriesLoading ? 'Loading categories...' : 'Select a category'}
+            />
+          )}
         />
 
 
 
-        <Select
-          label="Status"
-          {...register('status')}
-          options={statusOptions}
-          error={errors.status?.message}
-          required
-          disabled={isSubmitting || isLoading}
+        <Controller
+          name="status"
+          control={control}
+          render={({ field }) => (
+            <Select
+              label="Status"
+              value={field.value}
+              onChange={field.onChange}
+              options={statusOptions}
+              error={errors.status?.message}
+              required
+              disabled={isSubmitting || isLoading}
+            />
+          )}
         />
 
         <div className="md:col-span-2">

@@ -256,7 +256,7 @@ export class AchievementService {
     }
 
     // Handle tags if provided
-    if (data.tags) {
+    if (data.tags !== undefined) {
       const existingTags = await prisma.tag.findMany({
         where: { name: { in: data.tags } }
       });
@@ -281,13 +281,15 @@ export class AchievementService {
           where: { achievementId: id }
         });
 
-        // Create new tag associations
-        await tx.achievementTag.createMany({
-          data: allTags.map(tag => ({
-            achievementId: id,
-            tagId: tag.id
-          }))
-        });
+        // Create new tag associations only if there are tags
+        if (allTags.length > 0) {
+          await tx.achievementTag.createMany({
+            data: allTags.map(tag => ({
+              achievementId: id,
+              tagId: tag.id
+            }))
+          });
+        }
 
         // Update achievement
         const updatedAchievement = await tx.achievement.update({
@@ -319,9 +321,10 @@ export class AchievementService {
           }
         });
 
-        // Transform milestones to include isCompleted field
+        // Transform milestones to include isCompleted field and flatten tags
         const transformedAchievement = {
           ...updatedAchievement,
+          tags: updatedAchievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
           milestones: updatedAchievement.milestones?.map((milestone: any) => ({
             ...milestone,
             isCompleted: !!milestone.completedAt
