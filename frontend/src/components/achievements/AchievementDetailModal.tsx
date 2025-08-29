@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Calendar, Clock, ExternalLink, Tag, Code, Target, Folder } from 'lucide-react';
 import { Achievement } from '../../types';
 import { Button } from '../ui/Button';
 import { ImageViewer } from '../ui/ImageViewer';
 import { MilestoneProgress } from './MilestoneProgress';
 import { MilestoneList } from './MilestoneList';
+import { format } from 'date-fns';
 
 interface AchievementDetailModalProps {
   achievement: Achievement | null;
@@ -105,6 +106,134 @@ export function AchievementDetailModal({
                   {achievement.description}
                 </p>
               </div>
+
+              {/* Details Grid */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Dates */}
+                <div className="space-y-3">
+                  <div className="flex items-center text-sm">
+                    <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                    <div>
+                      <span className="font-medium text-gray-700">Start Date:</span>
+                      <span className="ml-2 text-gray-600">
+                        {format(new Date(achievement.startDate), 'PPP')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {achievement.endDate && (
+                    <div className="flex items-center text-sm">
+                      <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                      <div>
+                        <span className="font-medium text-gray-700">End Date:</span>
+                        <span className="ml-2 text-gray-600">
+                          {format(new Date(achievement.endDate), 'PPP')}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {achievement.durationHours && (
+                    <div className="flex items-center text-sm">
+                      <Clock className="h-4 w-4 text-gray-500 mr-2" />
+                      <div>
+                        <span className="font-medium text-gray-700">Duration:</span>
+                        <span className="ml-2 text-gray-600">
+                          {achievement.durationHours} hours
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Category and Links */}
+                <div className="space-y-3">
+                  {achievement.category && (
+                    <div className="flex items-center text-sm">
+                      <Folder className="h-4 w-4 text-gray-500 mr-2" />
+                      <div>
+                        <span className="font-medium text-gray-700">Category:</span>
+                        <span
+                          className="ml-2 px-2 py-1 rounded-full text-xs text-white"
+                          style={{ backgroundColor: achievement.category.color || '#6B7280' }}
+                        >
+                          {achievement.category.name}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {achievement.githubUrl && (
+                    <div className="flex items-center text-sm">
+                      <ExternalLink className="h-4 w-4 text-gray-500 mr-2" />
+                      <div>
+                        <span className="font-medium text-gray-700">GitHub:</span>
+                        <a
+                          href={achievement.githubUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          View Repository
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Impact */}
+              {achievement.impact && (
+                <div className="mt-6">
+                  <div className="flex items-center mb-2">
+                    <Target className="h-4 w-4 text-gray-500 mr-2" />
+                    <span className="font-medium text-gray-700">Impact</span>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">
+                    {achievement.impact}
+                  </p>
+                </div>
+              )}
+
+              {/* Skills Used */}
+              {achievement.skillsUsed && achievement.skillsUsed.length > 0 && (
+                <div className="mt-6">
+                  <div className="flex items-center mb-2">
+                    <Code className="h-4 w-4 text-gray-500 mr-2" />
+                    <span className="font-medium text-gray-700">Skills Used</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {achievement.skillsUsed.map((skill) => (
+                      <span
+                        key={skill}
+                        className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tags */}
+              {achievement.tags && achievement.tags.length > 0 && (
+                <div className="mt-6">
+                  <div className="flex items-center mb-2">
+                    <Tag className="h-4 w-4 text-gray-500 mr-2" />
+                    <span className="font-medium text-gray-700">Tags</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {achievement.tags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full"
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Milestone List */}
               {achievement?.milestones && achievement.milestones.length > 0 && (

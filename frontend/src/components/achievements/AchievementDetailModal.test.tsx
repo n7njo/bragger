@@ -13,7 +13,6 @@ const mockAchievement: Achievement = {
   categoryId: '1',
   impact: 'Significant impact on the project.',
   skillsUsed: ['React', 'TypeScript', 'Node.js'],
-  teamSize: 3,
   status: 'complete' as const,
   githubUrl: 'https://github.com/test/project',
   createdAt: '2022-01-01T00:00:00Z',
@@ -173,7 +172,6 @@ describe('AchievementDetailModal', () => {
 
     expect(screen.getByText('Metrics')).toBeInTheDocument();
     expect(screen.getByText('40 hours')).toBeInTheDocument();
-    expect(screen.getByText('3 people')).toBeInTheDocument();
   });
 
   it('displays GitHub link when provided', () => {

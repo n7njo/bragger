@@ -43,7 +43,6 @@ export const mockAchievements: Achievement[] = [
     categoryId: '2',
     impact: 'Improved team productivity by 30%',
     skillsUsed: ['React', 'TypeScript', 'D3.js'],
-    teamSize: 3,
     status: 'complete',
     githubUrl: 'https://github.com/example/project',
     createdAt: '2023-01-01T00:00:00.000Z',

@@ -100,16 +100,17 @@ export class AchievementService {
         }
       });
 
-      // Transform milestones to include isCompleted field
-      const transformedAchievement = {
-        ...achievement,
-        milestones: achievement.milestones?.map((milestone: any) => ({
-          ...milestone,
-          isCompleted: !!milestone.completedAt
-        })) || []
-      };
+    // Transform milestones to include isCompleted field and flatten tags
+    const transformedAchievement = {
+      ...achievement,
+      tags: achievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
+      milestones: achievement.milestones?.map((milestone: any) => ({
+        ...milestone,
+        isCompleted: !!milestone.completedAt
+      })) || []
+    };
 
-      return transformedAchievement;
+    return transformedAchievement;
     });
   }
 
@@ -204,9 +205,10 @@ export class AchievementService {
 
     const totalPages = Math.ceil(total / pageSize);
 
-    // Transform milestones to include isCompleted field
+    // Transform milestones to include isCompleted field and flatten tags
     const transformedData = data.map((achievement: any) => ({
       ...achievement,
+      tags: achievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
       milestones: achievement.milestones?.map((milestone: any) => ({
         ...milestone,
         isCompleted: !!milestone.completedAt
@@ -358,9 +360,10 @@ export class AchievementService {
       }
     });
 
-    // Transform milestones to include isCompleted field
+    // Transform milestones to include isCompleted field and flatten tags
     const transformedAchievement = {
       ...updatedAchievement,
+      tags: updatedAchievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
       milestones: updatedAchievement.milestones?.map((milestone: any) => ({
         ...milestone,
         isCompleted: !!milestone.completedAt

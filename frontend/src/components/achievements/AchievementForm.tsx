@@ -47,8 +47,8 @@ export function AchievementForm({
     defaultValues: {
       title: initialData?.title || '',
       description: initialData?.description || '',
-      startDate: initialData?.startDate ? initialData.startDate.split('T')[0] : '',
-      endDate: initialData?.endDate ? initialData.endDate.split('T')[0] : '',
+      startDate: initialData?.startDate ? new Date(initialData.startDate).toISOString().split('T')[0] : '',
+      endDate: initialData?.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
       durationHours: initialData?.durationHours || undefined,
       categoryId: initialData?.categoryId || '',
       impact: initialData?.impact || '',

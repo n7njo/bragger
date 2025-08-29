@@ -14,7 +14,6 @@ describe('AchievementCard', () => {
     categoryId: '1',
     impact: 'Great impact on the team',
     skillsUsed: ['React', 'TypeScript', 'Node.js', 'MongoDB'],
-    teamSize: 5,
     status: 'complete',
     githubUrl: 'https://github.com/example/test-project',
     createdAt: '2023-01-01T00:00:00Z',
@@ -44,12 +43,11 @@ describe('AchievementCard', () => {
     // Check category
     expect(screen.getByText('Web Development')).toBeInTheDocument()
     
-    // Check priority
-    expect(screen.getByText('High')).toBeInTheDocument()
+    // Check status
+    expect(screen.getByText('Complete')).toBeInTheDocument()
     
-    // Check that duration and team size text exists
+    // Check that duration text exists
     expect(screen.getByText('40 hours')).toBeInTheDocument()
-    expect(screen.getByText(/Team of 5/)).toBeInTheDocument()
   })
 
    it('displays skills with overflow indicator', () => {
@@ -108,25 +106,29 @@ describe('AchievementCard', () => {
     
     // Optional fields should not appear
     expect(screen.queryByText(/hours/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/Team of/)).not.toBeInTheDocument()
   })
 
-  it('applies correct priority colors', () => {
-    const highPriorityAchievement = { ...mockAchievement, priority: 'high' as const }
-    const mediumPriorityAchievement = { ...mockAchievement, priority: 'medium' as const }
-    const lowPriorityAchievement = { ...mockAchievement, priority: 'low' as const }
+  it('applies correct status colors', () => {
+    const completeAchievement = { ...mockAchievement, status: 'complete' as const }
+    const usableAchievement = { ...mockAchievement, status: 'usable' as const }
+    const conceptAchievement = { ...mockAchievement, status: 'concept' as const }
+    const ideaAchievement = { ...mockAchievement, status: 'idea' as const }
 
-    const { rerender } = render(<AchievementCard achievement={highPriorityAchievement} />)
-    let priorityBadge = screen.getByText('High')
-    expect(priorityBadge).toHaveClass('bg-red-100', 'text-red-800')
+    const { rerender } = render(<AchievementCard achievement={completeAchievement} />)
+    let statusBadge = screen.getByText('Complete')
+    expect(statusBadge).toHaveClass('bg-green-100', 'text-green-800')
 
-    rerender(<AchievementCard achievement={mediumPriorityAchievement} />)
-    priorityBadge = screen.getByText('Medium')
-    expect(priorityBadge).toHaveClass('bg-yellow-100', 'text-yellow-800')
+    rerender(<AchievementCard achievement={usableAchievement} />)
+    statusBadge = screen.getByText('Usable')
+    expect(statusBadge).toHaveClass('bg-blue-100', 'text-blue-800')
 
-    rerender(<AchievementCard achievement={lowPriorityAchievement} />)
-    priorityBadge = screen.getByText('Low')
-    expect(priorityBadge).toHaveClass('bg-green-100', 'text-green-800')
+    rerender(<AchievementCard achievement={conceptAchievement} />)
+    statusBadge = screen.getByText('Concept')
+    expect(statusBadge).toHaveClass('bg-yellow-100', 'text-yellow-800')
+
+    rerender(<AchievementCard achievement={ideaAchievement} />)
+    statusBadge = screen.getByText('Idea')
+    expect(statusBadge).toHaveClass('bg-gray-100', 'text-gray-800')
   })
 
   it('calls onClick handler when card is clicked', () => {

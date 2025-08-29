@@ -65,7 +65,6 @@ describe('AchievementForm', () => {
     // Check optional fields
     expect(screen.getByLabelText(/end date/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/duration/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/team size/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/impact/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/skills used/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/tags/i)).toBeInTheDocument()
@@ -86,7 +85,6 @@ describe('AchievementForm', () => {
       categoryId: '1',
       impact: 'Test impact',
       skillsUsed: ['React', 'TypeScript'],
-      teamSize: 3,
       status: 'complete',
       githubUrl: 'https://github.com/example/test',
       createdAt: '2023-01-01',
@@ -109,7 +107,6 @@ describe('AchievementForm', () => {
     expect(screen.getByDisplayValue('2023-01-01')).toBeInTheDocument()
     expect(screen.getByDisplayValue('2023-01-15')).toBeInTheDocument()
     expect(screen.getByDisplayValue('40')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('3')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Test impact')).toBeInTheDocument()
   })
 
@@ -181,7 +178,6 @@ describe('AchievementForm', () => {
     await user.type(screen.getByLabelText(/start date/i), '2023-01-01')
     await user.type(screen.getByLabelText(/end date/i), '2023-01-15')
     await user.type(screen.getByLabelText(/duration/i), '40')
-    await user.type(screen.getByLabelText(/team size/i), '3')
     await user.type(screen.getByLabelText(/impact/i), 'Great impact on the team')
 
     // Add skills
@@ -210,7 +206,6 @@ describe('AchievementForm', () => {
         categoryId: '1',
         impact: 'Great impact on the team',
         skillsUsed: ['React', 'TypeScript'],
-        teamSize: 3,
       status: 'complete',
       githubUrl: 'https://github.com/example/test',
         tags: ['Frontend', 'Development']
