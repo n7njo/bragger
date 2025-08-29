@@ -144,13 +144,14 @@ export class AchievementService {
 
     if (!achievement) return null;
 
-    // Transform milestones to include isCompleted field
+    // Transform milestones to include isCompleted field and flatten tags
     const transformedAchievement = {
       ...achievement,
-      milestones: achievement.milestones.map((milestone: any) => ({
+      tags: achievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
+      milestones: achievement.milestones?.map((milestone: any) => ({
         ...milestone,
         isCompleted: !!milestone.completedAt
-      }))
+      })) || []
     };
 
     return transformedAchievement;

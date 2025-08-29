@@ -1,5 +1,5 @@
 import { useForm, Controller } from 'react-hook-form'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { achievementSchema, AchievementFormData } from '../../schemas/achievementSchema'
 import { Achievement } from '../../types'
@@ -41,6 +41,7 @@ export function AchievementForm({
     handleSubmit,
     control,
     watch,
+    reset,
     formState: { errors, isSubmitting }
   } = useForm<AchievementFormData>({
     resolver: zodResolver(achievementSchema),
@@ -58,6 +59,27 @@ export function AchievementForm({
       tags: initialData?.tags?.map(tag => tag.name) || []
     }
   })
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        title: initialData.title || '',
+        description: initialData.description || '',
+        startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().split('T')[0] : '',
+        endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
+        durationHours: initialData.durationHours || undefined,
+        categoryId: initialData.categoryId || '',
+        impact: initialData.impact || '',
+        skillsUsed: initialData.skillsUsed || [],
+        status: initialData.status || 'idea',
+        githubUrl: initialData.githubUrl || '',
+        tags: initialData.tags?.map(tag => tag.name) || []
+      })
+      // Clear images when editing a different achievement
+      setImages([])
+    }
+  }, [initialData, reset])
 
   const watchedStartDate = watch('startDate')
 
