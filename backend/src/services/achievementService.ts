@@ -146,13 +146,26 @@ export class AchievementService {
 
     // Transform milestones to include isCompleted field and flatten tags
     const transformedAchievement = {
-      ...achievement,
+      id: achievement.id,
+      title: achievement.title,
+      description: achievement.description,
+      startDate: achievement.startDate,
+      endDate: achievement.endDate,
+      durationHours: achievement.durationHours,
+      categoryId: achievement.categoryId,
+      impact: achievement.impact,
+      skillsUsed: achievement.skillsUsed,
+      status: (achievement.status as string)?.toLowerCase(),
+      githubUrl: achievement.githubUrl,
+      createdAt: achievement.createdAt,
+      updatedAt: achievement.updatedAt,
+      category: achievement.category,
       tags: achievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
+      images: achievement.images,
       milestones: achievement.milestones?.map((milestone: any) => ({
         ...milestone,
         isCompleted: !!milestone.completedAt
-      })) || [],
-      status: (achievement.status as string)?.toLowerCase()
+      })) || []
     };
 
     return transformedAchievement;
@@ -209,9 +222,22 @@ export class AchievementService {
 
     // Transform milestones to include isCompleted field and flatten tags
     const transformedData = data.map((achievement: any) => ({
-      ...achievement,
+      id: achievement.id,
+      title: achievement.title,
+      description: achievement.description,
+      startDate: achievement.startDate,
+      endDate: achievement.endDate,
+      durationHours: achievement.durationHours,
+      categoryId: achievement.categoryId,
+      impact: achievement.impact,
+      skillsUsed: achievement.skillsUsed,
       status: (achievement.status as string)?.toLowerCase(),
+      githubUrl: achievement.githubUrl,
+      createdAt: achievement.createdAt,
+      updatedAt: achievement.updatedAt,
+      category: achievement.category,
       tags: achievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
+      images: achievement.images,
       milestones: achievement.milestones?.map((milestone: any) => ({
         ...milestone,
         isCompleted: !!milestone.completedAt
@@ -324,13 +350,26 @@ export class AchievementService {
 
         // Transform milestones to include isCompleted field and flatten tags
         const transformedAchievement = {
-          ...updatedAchievement,
+          id: updatedAchievement.id,
+          title: updatedAchievement.title,
+          description: updatedAchievement.description,
+          startDate: updatedAchievement.startDate,
+          endDate: updatedAchievement.endDate,
+          durationHours: updatedAchievement.durationHours,
+          categoryId: updatedAchievement.categoryId,
+          impact: updatedAchievement.impact,
+          skillsUsed: updatedAchievement.skillsUsed,
+          status: (updatedAchievement.status as string)?.toLowerCase(),
+          githubUrl: updatedAchievement.githubUrl,
+          createdAt: updatedAchievement.createdAt,
+          updatedAt: updatedAchievement.updatedAt,
+          category: updatedAchievement.category,
           tags: updatedAchievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
+          images: updatedAchievement.images,
           milestones: updatedAchievement.milestones?.map((milestone: any) => ({
             ...milestone,
             isCompleted: !!milestone.completedAt
-          })) || [],
-          status: (updatedAchievement.status as string)?.toLowerCase()
+          })) || []
         };
 
         return transformedAchievement;
@@ -368,13 +407,26 @@ export class AchievementService {
 
     // Transform milestones to include isCompleted field and flatten tags
     const transformedAchievement = {
-      ...updatedAchievement,
+      id: updatedAchievement.id,
+      title: updatedAchievement.title,
+      description: updatedAchievement.description,
+      startDate: updatedAchievement.startDate,
+      endDate: updatedAchievement.endDate,
+      durationHours: updatedAchievement.durationHours,
+      categoryId: updatedAchievement.categoryId,
+      impact: updatedAchievement.impact,
+      skillsUsed: updatedAchievement.skillsUsed,
+      status: (updatedAchievement.status as string)?.toLowerCase(),
+      githubUrl: updatedAchievement.githubUrl,
+      createdAt: updatedAchievement.createdAt,
+      updatedAt: updatedAchievement.updatedAt,
+      category: updatedAchievement.category,
       tags: updatedAchievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
+      images: updatedAchievement.images,
       milestones: updatedAchievement.milestones?.map((milestone: any) => ({
         ...milestone,
         isCompleted: !!milestone.completedAt
-      })) || [],
-      status: (updatedAchievement.status as string)?.toLowerCase()
+      })) || []
     };
 
     return transformedAchievement;
