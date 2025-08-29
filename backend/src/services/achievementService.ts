@@ -144,9 +144,12 @@ export class AchievementService {
 
     if (!achievement) return null;
 
-    console.log('Raw achievement status:', achievement.status, typeof achievement.status);
-
     // Transform milestones to include isCompleted field and flatten tags
+    const rawStatus = achievement.status;
+    const transformedStatus = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : String(rawStatus || '').toLowerCase();
+
+    console.log('Raw status:', rawStatus, 'Type:', typeof rawStatus, 'Transformed:', transformedStatus);
+
     const transformedAchievement = {
       id: achievement.id,
       title: achievement.title,
@@ -157,7 +160,7 @@ export class AchievementService {
       categoryId: achievement.categoryId,
       impact: achievement.impact,
       skillsUsed: achievement.skillsUsed,
-      status: (achievement.status as string)?.toLowerCase(),
+      status: transformedStatus,
       githubUrl: achievement.githubUrl,
       createdAt: achievement.createdAt,
       updatedAt: achievement.updatedAt,
