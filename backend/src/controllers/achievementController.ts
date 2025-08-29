@@ -66,7 +66,9 @@ export const getAchievement = async (req: Request, res: Response) => {
 
     // Ensure status is lowercase
     if (achievement && typeof achievement === 'object' && 'status' in achievement) {
+      console.log('Original status:', achievement.status);
       achievement.status = String(achievement.status).toLowerCase();
+      console.log('Transformed status:', achievement.status);
     }
 
     res.json({
