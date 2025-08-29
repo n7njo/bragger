@@ -144,6 +144,8 @@ export class AchievementService {
 
     if (!achievement) return null;
 
+    console.log('Raw achievement status:', achievement.status, typeof achievement.status);
+
     // Transform milestones to include isCompleted field and flatten tags
     const transformedAchievement = {
       id: achievement.id,
