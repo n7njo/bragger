@@ -145,11 +145,6 @@ export class AchievementService {
     if (!achievement) return null;
 
     // Transform milestones to include isCompleted field and flatten tags
-    const rawStatus = achievement.status;
-    const transformedStatus = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : String(rawStatus || '').toLowerCase();
-
-    console.log('Raw status:', rawStatus, 'Type:', typeof rawStatus, 'Transformed:', transformedStatus);
-
     const transformedAchievement = {
       id: achievement.id,
       title: achievement.title,
@@ -160,7 +155,7 @@ export class AchievementService {
       categoryId: achievement.categoryId,
       impact: achievement.impact,
       skillsUsed: achievement.skillsUsed,
-      status: transformedStatus,
+      status: achievement.status?.toString().toLowerCase() || 'idea',
       githubUrl: achievement.githubUrl,
       createdAt: achievement.createdAt,
       updatedAt: achievement.updatedAt,
@@ -236,7 +231,7 @@ export class AchievementService {
       categoryId: achievement.categoryId,
       impact: achievement.impact,
       skillsUsed: achievement.skillsUsed,
-      status: (achievement.status as string)?.toLowerCase(),
+      status: achievement.status?.toString().toLowerCase() || 'idea',
       githubUrl: achievement.githubUrl,
       createdAt: achievement.createdAt,
       updatedAt: achievement.updatedAt,
@@ -364,7 +359,7 @@ export class AchievementService {
           categoryId: updatedAchievement.categoryId,
           impact: updatedAchievement.impact,
           skillsUsed: updatedAchievement.skillsUsed,
-          status: (updatedAchievement.status as string)?.toLowerCase(),
+          status: updatedAchievement.status?.toString().toLowerCase() || 'idea',
           githubUrl: updatedAchievement.githubUrl,
           createdAt: updatedAchievement.createdAt,
           updatedAt: updatedAchievement.updatedAt,
@@ -421,7 +416,7 @@ export class AchievementService {
       categoryId: updatedAchievement.categoryId,
       impact: updatedAchievement.impact,
       skillsUsed: updatedAchievement.skillsUsed,
-      status: (updatedAchievement.status as string)?.toLowerCase(),
+      status: updatedAchievement.status?.toString().toLowerCase() || 'idea',
       githubUrl: updatedAchievement.githubUrl,
       createdAt: updatedAchievement.createdAt,
       updatedAt: updatedAchievement.updatedAt,
