@@ -23,6 +23,16 @@ export const getAchievements = async (req: Request, res: Response) => {
     };
 
     const result = await achievementService.findAll(filters);
+
+    // Ensure all achievement statuses are lowercase
+    if (result.data && Array.isArray(result.data)) {
+      result.data.forEach(achievement => {
+        if (achievement && typeof achievement === 'object' && 'status' in achievement) {
+          achievement.status = String(achievement.status).toLowerCase();
+        }
+      });
+    }
+
     res.json(result);
   } catch (error) {
     console.error('Error fetching achievements:', error);
@@ -52,6 +62,11 @@ export const getAchievement = async (req: Request, res: Response) => {
         success: false,
         error: 'Achievement not found',
       });
+    }
+
+    // Ensure status is lowercase
+    if (achievement && typeof achievement === 'object' && 'status' in achievement) {
+      achievement.status = String(achievement.status).toLowerCase();
     }
 
     res.json({
@@ -116,7 +131,12 @@ export const updateAchievement = async (req: Request, res: Response) => {
     }
     
     const achievement = await achievementService.update(id, userId, data);
-    
+
+    // Ensure status is lowercase
+    if (achievement && typeof achievement === 'object' && 'status' in achievement) {
+      achievement.status = String(achievement.status).toLowerCase();
+    }
+
     res.json({
       success: true,
       data: achievement,
