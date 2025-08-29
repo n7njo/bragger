@@ -5,6 +5,7 @@ import { Modal } from '../components/ui/Modal';
 import { useAchievements, useCreateAchievement, useUpdateAchievement, useDeleteAchievement } from '../hooks';
 import { AchievementCard } from '../components/achievements/AchievementCard';
 import { AchievementForm } from '../components/achievements/AchievementForm';
+import { AchievementDetailModal } from '../components/achievements/AchievementDetailModal';
 import { LoadingGrid } from '../components/ui/LoadingCard';
 import { ErrorState } from '../components/ui/ErrorState';
 import { AchievementFilters, CreateAchievementDto, UpdateAchievementDto, Achievement } from '../types';
@@ -18,6 +19,7 @@ export function Achievements() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null)
   const [deletingAchievement, setDeletingAchievement] = useState<Achievement | null>(null)
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null)
 
   const { 
     data: achievementsResponse, 
@@ -48,8 +50,8 @@ export function Achievements() {
     }
   }
 
-  const handleAchievementClick = (_achievementId: string) => {
-    // TODO: Navigate to achievement detail page
+  const handleAchievementClick = (achievement: Achievement) => {
+    setSelectedAchievement(achievement)
   }
 
   const handleCreateAchievement = async (data: CreateAchievementDto, images?: any[]) => {
@@ -105,8 +107,9 @@ export function Achievements() {
         categoryId: data.categoryId,
         impact: data.impact,
         skillsUsed: data.skillsUsed,
-        teamSize: data.teamSize,
-        priority: data.priority,
+
+        status: data.status,
+        githubUrl: data.githubUrl,
         tags: data.tags
       }
       
@@ -244,7 +247,7 @@ export function Achievements() {
             <AchievementCard
               key={achievement.id}
               achievement={achievement}
-              onClick={() => handleAchievementClick(achievement.id)}
+              onClick={() => handleAchievementClick(achievement)}
               onEdit={handleEditAchievement}
               onDelete={handleDeleteAchievement}
             />
@@ -284,6 +287,14 @@ export function Achievements() {
           />
         )}
       </Modal>
+
+      {/* Achievement Detail Modal */}
+      <AchievementDetailModal
+        achievement={selectedAchievement}
+        isOpen={!!selectedAchievement}
+        onClose={() => setSelectedAchievement(null)}
+        onEdit={handleEditAchievement}
+      />
 
       {/* Delete Confirmation Modal */}
       <Modal

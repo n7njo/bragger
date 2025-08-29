@@ -2,6 +2,9 @@ import {
   Achievement,
   Category,
   Tag,
+  Milestone,
+  CreateMilestoneDto,
+  UpdateMilestoneDto,
   UpdateAchievementDto,
   AchievementFilters,
   CreateCategoryDto,
@@ -18,13 +21,19 @@ import { AchievementFormData } from '../schemas/achievementSchema';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 class ApiClient {
+  private getAuthToken(): string | null {
+    return localStorage.getItem('bragger_token');
+  }
+
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
+    const token = this.getAuthToken();
 
     try {
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
           ...options?.headers,
         },
         ...options,
@@ -189,6 +198,57 @@ class ApiClient {
     return this.fetch<ApiResponse<void>>(`/images/${imageId}`, {
       method: 'DELETE',
     });
+  }
+
+  // Milestone endpoints
+  async getMilestones(achievementId: string): Promise<ApiResponse<Milestone[]>> {
+    return this.fetch<ApiResponse<Milestone[]>>(`/achievements/${achievementId}/milestones`);
+  }
+
+  async createMilestone(achievementId: string, data: CreateMilestoneDto): Promise<ApiResponse<Milestone>> {
+    return this.fetch<ApiResponse<Milestone>>(`/achievements/${achievementId}/milestones`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateMilestone(achievementId: string, milestoneId: string, data: UpdateMilestoneDto): Promise<ApiResponse<Milestone>> {
+    return this.fetch<ApiResponse<Milestone>>(`/achievements/${achievementId}/milestones/${milestoneId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteMilestone(achievementId: string, milestoneId: string): Promise<ApiResponse<void>> {
+    return this.fetch<ApiResponse<void>>(`/achievements/${achievementId}/milestones/${milestoneId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async reorderMilestones(achievementId: string, milestoneIds: string[]): Promise<ApiResponse<Milestone[]>> {
+    return this.fetch<ApiResponse<Milestone[]>>(`/achievements/${achievementId}/milestones/reorder`, {
+      method: 'PUT',
+      body: JSON.stringify({ milestoneIds }),
+    });
+  }
+
+  // Auth endpoints
+  async login(email: string, password: string): Promise<ApiResponse<{user: any; token: string}>> {
+    return this.fetch<ApiResponse<{user: any; token: string}>>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
+
+  async register(email: string, password: string, name: string): Promise<ApiResponse<{user: any; token: string}>> {
+    return this.fetch<ApiResponse<{user: any; token: string}>>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, name }),
+    });
+  }
+
+  async getProfile(): Promise<ApiResponse<any>> {
+    return this.fetch<ApiResponse<any>>('/auth/profile');
   }
 }
 

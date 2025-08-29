@@ -1,4 +1,4 @@
-import { Calendar, Clock, Users, Edit2, Trash2, MoreVertical, Image as ImageIcon } from 'lucide-react'
+import { Calendar, Clock, Edit2, Trash2, MoreVertical, Image as ImageIcon, ExternalLink } from 'lucide-react'
 import { Achievement } from '../../types'
 import { format } from 'date-fns'
 import { useState, useEffect, useRef } from 'react'
@@ -37,21 +37,23 @@ export function AchievementCard({ achievement, onClick, onEdit, onDelete }: Achi
     }
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800'
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'low':
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'complete':
         return 'bg-green-100 text-green-800'
+      case 'usable':
+        return 'bg-blue-100 text-blue-800'
+      case 'concept':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'idea':
+        return 'bg-gray-100 text-gray-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
   }
 
-  const getPriorityLabel = (priority: string) => {
-    return priority.charAt(0).toUpperCase() + priority.slice(1)
+  const getStatusLabel = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1)
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -145,8 +147,8 @@ export function AchievementCard({ achievement, onClick, onEdit, onDelete }: Achi
                   {achievement.category.name}
                 </span>
               )}
-              <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(achievement.priority)}`}>
-                {getPriorityLabel(achievement.priority)}
+              <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(achievement.status)}`}>
+                {getStatusLabel(achievement.status)}
               </span>
             </div>
           </div>
@@ -172,10 +174,20 @@ export function AchievementCard({ achievement, onClick, onEdit, onDelete }: Achi
           </div>
         )}
         
-        {achievement.teamSize && (
+
+        
+        {achievement.githubUrl && (
           <div className="flex items-center text-xs text-gray-500">
-            <Users className="h-3 w-3 mr-1" />
-            <span>Team of {achievement.teamSize}</span>
+            <ExternalLink className="h-3 w-3 mr-1" />
+            <a 
+              href={achievement.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              View on GitHub
+            </a>
           </div>
         )}
       </div>

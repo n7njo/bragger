@@ -46,7 +46,7 @@ describe('ApiClient', () => {
         startDate: '2023-01-01',
         categoryId: '1',
         skillsUsed: ['React'],
-        priority: 'medium' as const,
+        status: 'concept' as const,
         tags: ['React']
       }
 

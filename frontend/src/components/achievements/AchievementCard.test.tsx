@@ -15,7 +15,8 @@ describe('AchievementCard', () => {
     impact: 'Great impact on the team',
     skillsUsed: ['React', 'TypeScript', 'Node.js', 'MongoDB'],
     teamSize: 5,
-    priority: 'high',
+    status: 'complete',
+    githubUrl: 'https://github.com/example/test-project',
     createdAt: '2023-01-01T00:00:00Z',
     updatedAt: '2023-01-01T00:00:00Z',
     category: {
@@ -91,7 +92,7 @@ describe('AchievementCard', () => {
       startDate: '2023-01-01',
       categoryId: '1',
       skillsUsed: ['JavaScript'],
-      priority: 'low',
+      status: 'idea',
       createdAt: '2023-01-01T00:00:00Z',
       updatedAt: '2023-01-01T00:00:00Z',
       tags: [],
@@ -102,7 +103,7 @@ describe('AchievementCard', () => {
 
     expect(screen.getByText('Minimal Achievement')).toBeInTheDocument()
     expect(screen.getByText('Basic description')).toBeInTheDocument()
-    expect(screen.getByText('Low')).toBeInTheDocument()
+    expect(screen.getByText('Idea')).toBeInTheDocument()
     expect(screen.getByText('JavaScript')).toBeInTheDocument()
     
     // Optional fields should not appear

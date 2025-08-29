@@ -87,7 +87,8 @@ describe('AchievementForm', () => {
       impact: 'Test impact',
       skillsUsed: ['React', 'TypeScript'],
       teamSize: 3,
-      priority: 'high',
+      status: 'complete',
+      githubUrl: 'https://github.com/example/test',
       createdAt: '2023-01-01',
       updatedAt: '2023-01-01',
       category: { id: '1', name: 'Professional Development', color: '#3B82F6', createdAt: '2023-01-01' },
@@ -210,7 +211,8 @@ describe('AchievementForm', () => {
         impact: 'Great impact on the team',
         skillsUsed: ['React', 'TypeScript'],
         teamSize: 3,
-        priority: 'high',
+      status: 'complete',
+      githubUrl: 'https://github.com/example/test',
         tags: ['Frontend', 'Development']
       })
     })

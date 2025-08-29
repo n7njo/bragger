@@ -135,7 +135,7 @@ export function Dashboard() {
                       {achievement.durationHours ? `${achievement.durationHours}h` : '—'}
                     </div>
                     <div className="text-xs text-gray-500 capitalize">
-                      {achievement.priority.toLowerCase()} priority
+                      {achievement.status.toLowerCase()}
                     </div>
                   </div>
                 </div>

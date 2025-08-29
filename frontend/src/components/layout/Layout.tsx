@@ -1,6 +1,8 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Trophy, BarChart3, Settings } from 'lucide-react';
+import { Trophy, BarChart3, Settings, LogOut, User } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../ui/Button';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
@@ -11,6 +13,7 @@ const navigation = [
 
 export function Layout() {
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,11 +53,32 @@ export function Layout() {
             })}
           </nav>
 
-          {/* Footer */}
+          {/* User section */}
           <div className="border-t border-gray-200 p-4">
-            <div className="text-xs text-gray-500 text-center">
-              Personal Achievement Tracker
+            <div className="flex items-center mb-3">
+              <div className="flex-shrink-0">
+                <div className="h-8 w-8 bg-primary-600 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-white" />
+                </div>
+              </div>
+              <div className="ml-3 flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user?.name}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {user?.email}
+                </p>
+              </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              className="w-full text-xs"
+            >
+              <LogOut className="h-3 w-3 mr-1" />
+              Sign out
+            </Button>
           </div>
         </div>
       </div>

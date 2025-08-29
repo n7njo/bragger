@@ -1,3 +1,11 @@
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Achievement {
   id: string;
   title: string;
@@ -8,13 +16,15 @@ export interface Achievement {
   categoryId: string;
   impact?: string;
   skillsUsed: string[];
-  teamSize?: number;
-  priority: 'low' | 'medium' | 'high';
+
+  status: 'idea' | 'concept' | 'usable' | 'complete';
+  githubUrl?: string;
   createdAt: string;
   updatedAt: string;
   category?: Category;
   tags: Tag[];
   images: AchievementImage[];
+  milestones?: Milestone[];
 }
 
 export interface Category {
@@ -49,8 +59,9 @@ export interface CreateAchievementDto {
   categoryId: string;
   impact?: string;
   skillsUsed: string[];
-  teamSize?: number;
-  priority: 'low' | 'medium' | 'high';
+
+  status: 'idea' | 'concept' | 'usable' | 'complete';
+  githubUrl?: string;
   tags: string[];
 }
 
@@ -64,8 +75,8 @@ export interface AchievementFilters {
   tags?: string[];
   startDate?: string;
   endDate?: string;
-  priority?: 'low' | 'medium' | 'high';
-  sortBy?: 'title' | 'startDate' | 'createdAt' | 'priority';
+  status?: 'idea' | 'concept' | 'usable' | 'complete';
+  sortBy?: 'title' | 'startDate' | 'createdAt' | 'status';
   sortOrder?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
@@ -137,4 +148,33 @@ export interface TagFilters {
   search?: string;
   page?: number;
   pageSize?: number;
+}
+
+// Milestone types
+export interface Milestone {
+  id: string;
+  title: string;
+  description?: string;
+  dueDate?: string;
+  completedAt?: string;
+  isCompleted: boolean;
+  order: number;
+  achievementId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMilestoneDto {
+  title: string;
+  description?: string;
+  dueDate?: string;
+  order?: number;
+}
+
+export interface UpdateMilestoneDto {
+  title?: string;
+  description?: string;
+  dueDate?: string;
+  isCompleted?: boolean;
+  order?: number;
 }

@@ -21,7 +21,7 @@ describe('AchievementService', () => {
         categoryId: 'category-id-1',
         impact: 'High impact achievement',
         skillsUsed: ['TypeScript', 'Node.js'],
-        teamSize: 5,
+
         priority: 'high',
         tags: ['tag1', 'tag2']
       };
@@ -48,7 +48,7 @@ describe('AchievementService', () => {
         categoryId: createDto.categoryId,
         impact: createDto.impact,
         skillsUsed: createDto.skillsUsed,
-        teamSize: createDto.teamSize,
+
         priority: Priority.HIGH,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -132,7 +132,7 @@ describe('AchievementService', () => {
         categoryId: createDto.categoryId,
         impact: null,
         skillsUsed: createDto.skillsUsed,
-        teamSize: null,
+
         priority: Priority.MEDIUM,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -177,7 +177,7 @@ describe('AchievementService', () => {
         categoryId: 'category-id-1',
         impact: 'High impact',
         skillsUsed: ['TypeScript'],
-        teamSize: 3,
+
         priority: Priority.HIGH,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -237,7 +237,7 @@ describe('AchievementService', () => {
           categoryId: 'category-id-1',
           impact: null,
           skillsUsed: ['TypeScript'],
-          teamSize: null,
+  
           priority: Priority.MEDIUM,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -536,7 +536,7 @@ describe('AchievementService', () => {
         categoryId: 'category-id-1',
         impact: null,
         skillsUsed: [],
-        teamSize: null,
+
         priority: Priority.LOW,
         createdAt: new Date(),
         updatedAt: new Date(),

@@ -47,14 +47,14 @@ export function AchievementForm({
     defaultValues: {
       title: initialData?.title || '',
       description: initialData?.description || '',
-      startDate: initialData?.startDate || '',
-      endDate: initialData?.endDate || '',
+      startDate: initialData?.startDate ? initialData.startDate.split('T')[0] : '',
+      endDate: initialData?.endDate ? initialData.endDate.split('T')[0] : '',
       durationHours: initialData?.durationHours || undefined,
       categoryId: initialData?.categoryId || '',
       impact: initialData?.impact || '',
       skillsUsed: initialData?.skillsUsed || [],
-      teamSize: initialData?.teamSize || undefined,
-      priority: initialData?.priority || 'medium',
+      status: initialData?.status || 'idea',
+      githubUrl: initialData?.githubUrl || '',
       tags: initialData?.tags?.map(tag => tag.name) || []
     }
   })
@@ -80,10 +80,11 @@ export function AchievementForm({
     label: category.name
   }))
 
-  const priorityOptions = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' }
+  const statusOptions = [
+    { value: 'idea', label: 'Idea' },
+    { value: 'concept', label: 'Concept' },
+    { value: 'usable', label: 'Usable' },
+    { value: 'complete', label: 'Complete' }
   ]
 
   return (
@@ -152,24 +153,27 @@ export function AchievementForm({
           placeholder={categoriesLoading ? 'Loading categories...' : 'Select a category'}
         />
 
-        <Input
-          label="Team Size"
-          type="number"
-          {...register('teamSize', { valueAsNumber: true })}
-          error={errors.teamSize?.message}
-          disabled={isSubmitting || isLoading}
-          placeholder="1"
-          min="1"
-        />
+
 
         <Select
-          label="Priority"
-          {...register('priority')}
-          options={priorityOptions}
-          error={errors.priority?.message}
+          label="Status"
+          {...register('status')}
+          options={statusOptions}
+          error={errors.status?.message}
           required
           disabled={isSubmitting || isLoading}
         />
+
+        <div className="md:col-span-2">
+          <Input
+            label="GitHub URL"
+            {...register('githubUrl')}
+            error={errors.githubUrl?.message}
+            disabled={isSubmitting || isLoading}
+            placeholder="https://github.com/username/repository"
+            helperText="Link to the GitHub project (optional)"
+          />
+        </div>
 
         <div className="md:col-span-2">
           <TextArea

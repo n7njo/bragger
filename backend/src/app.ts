@@ -14,6 +14,8 @@ import achievementRoutes from './routes/achievements';
 import categoryRoutes from './routes/categories';
 import tagRoutes from './routes/tags';
 import imageRoutes from './routes/images';
+import authRoutes from './routes/auth';
+import milestoneRoutes from './routes/milestones';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -54,10 +56,12 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
+app.use('/api/auth', authRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api/images', imageRoutes);
+app.use('/api', milestoneRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

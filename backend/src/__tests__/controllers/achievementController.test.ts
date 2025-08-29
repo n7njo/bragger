@@ -59,7 +59,7 @@ describe('AchievementController', () => {
             categoryId: 'category-1',
             impact: null,
             skillsUsed: ['TypeScript'],
-            teamSize: null,
+
             priority: 'MEDIUM',
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -188,7 +188,7 @@ describe('AchievementController', () => {
         categoryId: 'category-1',
         impact: null,
         skillsUsed: ['TypeScript'],
-        teamSize: null,
+
         priority: 'MEDIUM',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -272,7 +272,7 @@ describe('AchievementController', () => {
         endDate: null,
         durationHours: null,
         impact: null,
-        teamSize: null,
+
         priority: 'MEDIUM',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -365,7 +365,7 @@ describe('AchievementController', () => {
         categoryId: 'category-1',
         impact: null,
         skillsUsed: ['TypeScript'],
-        teamSize: null,
+
         priority: 'HIGH',
         createdAt: new Date(),
         updatedAt: new Date(),

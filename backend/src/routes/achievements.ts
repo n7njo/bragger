@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import * as achievementController from '../controllers/achievementController';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
+
+// All achievement routes require authentication
+router.use(authenticateToken);
 
 // GET /api/achievements - List achievements with filtering
 router.get('/', achievementController.getAchievements);

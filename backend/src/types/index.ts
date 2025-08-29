@@ -1,5 +1,14 @@
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Achievement {
   id: string;
+  userId: string;
   title: string;
   description: string;
   startDate: Date;
@@ -8,8 +17,22 @@ export interface Achievement {
   categoryId: string;
   impact?: string;
   skillsUsed: string[];
-  teamSize?: number;
-  priority: 'low' | 'medium' | 'high';
+  status: 'idea' | 'concept' | 'usable' | 'complete';
+  githubUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  milestones?: Milestone[];
+}
+
+export interface Milestone {
+  id: string;
+  achievementId: string;
+  userId: string;
+  title: string;
+  description?: string;
+  completedAt?: Date;
+  dueDate?: Date;
+  order: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,21 +70,56 @@ export interface CreateAchievementDto {
   categoryId: string;
   impact?: string;
   skillsUsed: string[];
-  teamSize?: number;
-  priority: 'low' | 'medium' | 'high';
+  status: 'idea' | 'concept' | 'usable' | 'complete';
+  githubUrl?: string;
   tags: string[];
+  milestones?: CreateMilestoneDto[];
+}
+
+export interface CreateMilestoneDto {
+  title: string;
+  description?: string;
+  dueDate?: string;
+  order?: number;
+}
+
+export interface UpdateMilestoneDto {
+  title?: string;
+  description?: string;
+  completedAt?: string | null;
+  dueDate?: string;
+  order?: number;
+  isCompleted?: boolean;
+}
+
+// Auth DTOs
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface RegisterDto {
+  email: string;
+  name: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
 }
 
 export interface UpdateAchievementDto extends Partial<CreateAchievementDto> {}
 
 export interface AchievementFilters {
+  userId?: string;
   search?: string;
   categoryId?: string;
   tags?: string[];
   startDate?: string;
   endDate?: string;
-  priority?: 'low' | 'medium' | 'high';
-  sortBy?: 'title' | 'startDate' | 'createdAt' | 'priority';
+  status?: 'idea' | 'concept' | 'usable' | 'complete';
+  sortBy?: 'title' | 'startDate' | 'createdAt' | 'status';
   sortOrder?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;

@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { Save, User, Bell, Shield, Palette, Download, Trash2, Settings as SettingsIcon } from 'lucide-react';
+import { Save, User, Bell, Shield, Palette, Download, Trash2, Settings as SettingsIcon, Plus, Edit2, Tag } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
+import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '../hooks';
+import { Category, CreateCategoryDto, UpdateCategoryDto } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 interface UserPreferences {
   displayName: string;
@@ -17,9 +20,10 @@ interface UserPreferences {
 }
 
 export function Settings() {
+  const { user } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>({
-    displayName: 'John Doe',
-    email: 'john.doe@example.com',
+    displayName: user?.name || '',
+    email: user?.email || '',
     timezone: 'America/New_York',
     dateFormat: 'MM/dd/yyyy',
     theme: 'system',
@@ -30,6 +34,19 @@ export function Settings() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Category management state
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryForm, setCategoryForm] = useState<CreateCategoryDto>({ name: '', color: '#3b82f6' });
+
+  // Category hooks
+  const { data: categoriesResponse } = useCategories();
+  const createCategoryMutation = useCreateCategory();
+  const updateCategoryMutation = useUpdateCategory();
+  const deleteCategoryMutation = useDeleteCategory();
+  
+  const categories = categoriesResponse?.data || [];
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -66,6 +83,53 @@ export function Settings() {
     // In a real app, this would delete the user's account
     console.log('Account deletion requested');
     setShowDeleteModal(false);
+  };
+
+  // Category management functions
+  const handleCreateCategory = () => {
+    setCategoryForm({ name: '', color: '#3b82f6' });
+    setEditingCategory(null);
+    setShowCategoryModal(true);
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setCategoryForm({ name: category.name, color: category.color || '#3b82f6' });
+    setEditingCategory(category);
+    setShowCategoryModal(true);
+  };
+
+  const handleSaveCategory = async () => {
+    console.log('Saving category:', categoryForm);
+    try {
+      if (editingCategory) {
+        console.log('Updating category:', editingCategory.id);
+        await updateCategoryMutation.mutateAsync({
+          id: editingCategory.id,
+          data: categoryForm as UpdateCategoryDto
+        });
+      } else {
+        console.log('Creating new category');
+        const result = await createCategoryMutation.mutateAsync(categoryForm);
+        console.log('Created category result:', result);
+      }
+      setShowCategoryModal(false);
+      // The hooks will automatically invalidate and refetch
+    } catch (error) {
+      console.error('Error saving category:', error);
+      alert('Failed to save category: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      try {
+        await deleteCategoryMutation.mutateAsync(categoryId);
+        // The hook will automatically invalidate and refetch
+      } catch (error) {
+        console.error('Error deleting category:', error);
+        alert('Failed to delete category: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      }
+    }
   };
 
   const timezoneOptions = [
@@ -234,6 +298,55 @@ export function Settings() {
           </div>
         </div>
 
+        {/* Category Management */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <Tag className="h-5 w-5 text-primary-600 mr-2" />
+              <h2 className="text-xl font-semibold text-gray-900">Manage Categories</h2>
+            </div>
+            <Button onClick={handleCreateCategory} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Category
+            </Button>
+          </div>
+          
+          <div className="space-y-3">
+            {categories.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No categories found. Create your first category to get started.</p>
+            ) : (
+              categories.map((category) => (
+                <div key={category.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <div 
+                      className="w-4 h-4 rounded-full mr-3"
+                      style={{ backgroundColor: category.color || '#6B7280' }}
+                    />
+                    <span className="text-sm font-medium text-gray-900">{category.name}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleEditCategory(category)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleDeleteCategory(category.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
         {/* Save Button */}
         <div className="flex justify-end pt-6 border-t border-gray-200">
           <Button 
@@ -275,6 +388,62 @@ export function Settings() {
               onClick={handleDeleteAccount}
             >
               Delete Account
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Category Modal */}
+      <Modal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        title={editingCategory ? 'Edit Category' : 'Create Category'}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Category Name"
+            value={categoryForm.name}
+            onChange={(e) => setCategoryForm(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="Enter category name"
+            required
+          />
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Color
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="color"
+                value={categoryForm.color || '#3b82f6'}
+                onChange={(e) => setCategoryForm(prev => ({ ...prev, color: e.target.value }))}
+                className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+              />
+              <Input
+                value={categoryForm.color || '#3b82f6'}
+                onChange={(e) => setCategoryForm(prev => ({ ...prev, color: e.target.value }))}
+                placeholder="#3b82f6"
+                className="flex-1"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end space-x-4 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowCategoryModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveCategory}
+              disabled={!categoryForm.name.trim() || createCategoryMutation.isPending || updateCategoryMutation.isPending}
+              loading={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+            >
+              {editingCategory ? 'Update Category' : 'Create Category'}
             </Button>
           </div>
         </div>

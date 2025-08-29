@@ -87,6 +87,11 @@ spec:
             configMapKeyRef:
               name: bragger-config
               key: UPLOAD_PATH
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: bragger-secrets
+              key: jwt-secret
         volumeMounts:
         - name: uploads-volume
           mountPath: /app/uploads

@@ -50,16 +50,18 @@ export const achievementSchema = z.object({
     .min(1, 'At least one skill is required')
     .max(20, 'Maximum 20 skills allowed'),
     
-  teamSize: z
-    .number()
-    .min(1, 'Team size must be at least 1')
-    .max(1000, 'Team size seems too high')
-    .optional(),
+
     
-   priority: z
-     .enum(['low', 'medium', 'high'], {
-       message: 'Priority must be low, medium, or high'
+   status: z
+     .enum(['idea', 'concept', 'usable', 'complete'], {
+       message: 'Status must be idea, concept, usable, or complete'
      }),
+     
+   githubUrl: z
+     .string()
+     .url('Must be a valid URL')
+     .optional()
+     .or(z.literal('')),
     
    tags: z
      .array(z.string())

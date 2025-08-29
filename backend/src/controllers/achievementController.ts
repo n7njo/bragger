@@ -6,14 +6,17 @@ const achievementService = new AchievementService();
 
 export const getAchievements = async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).userId; // From auth middleware
+    
     const filters: AchievementFilters = {
+      userId: userId,
       search: req.query.search as string,
       categoryId: req.query.categoryId as string,
       tags: req.query.tags ? (Array.isArray(req.query.tags) ? req.query.tags as string[] : [req.query.tags as string]) : undefined,
       startDate: req.query.startDate as string,
       endDate: req.query.endDate as string,
-      priority: req.query.priority as 'low' | 'medium' | 'high',
-      sortBy: req.query.sortBy as 'title' | 'startDate' | 'createdAt' | 'priority',
+      status: req.query.status as 'idea' | 'concept' | 'usable' | 'complete',
+      sortBy: req.query.sortBy as 'title' | 'startDate' | 'createdAt' | 'status',
       sortOrder: req.query.sortOrder as 'asc' | 'desc',
       page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
       pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : undefined,
@@ -33,6 +36,7 @@ export const getAchievements = async (req: Request, res: Response) => {
 export const getAchievement = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = (req as any).userId;
     
     if (!id) {
       return res.status(400).json({
@@ -41,7 +45,7 @@ export const getAchievement = async (req: Request, res: Response) => {
       });
     }
 
-    const achievement = await achievementService.findById(id);
+    const achievement = await achievementService.findById(id, userId);
     
     if (!achievement) {
       return res.status(404).json({
@@ -66,8 +70,9 @@ export const getAchievement = async (req: Request, res: Response) => {
 export const createAchievement = async (req: Request, res: Response) => {
   try {
     const data: CreateAchievementDto = req.body;
+    const userId = (req as any).userId;
     
-    const achievement = await achievementService.create(data);
+    const achievement = await achievementService.create(userId, data);
     
     res.status(201).json({
       success: true,
@@ -101,6 +106,7 @@ export const updateAchievement = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const data: UpdateAchievementDto = req.body;
+    const userId = (req as any).userId;
     
     if (!id) {
       return res.status(400).json({
@@ -109,7 +115,7 @@ export const updateAchievement = async (req: Request, res: Response) => {
       });
     }
     
-    const achievement = await achievementService.update(id, data);
+    const achievement = await achievementService.update(id, userId, data);
     
     res.json({
       success: true,
@@ -149,6 +155,7 @@ export const updateAchievement = async (req: Request, res: Response) => {
 export const deleteAchievement = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = (req as any).userId;
     
     if (!id) {
       return res.status(400).json({
@@ -157,7 +164,7 @@ export const deleteAchievement = async (req: Request, res: Response) => {
       });
     }
     
-    await achievementService.delete(id);
+    await achievementService.delete(id, userId);
     
     res.json({
       success: true,

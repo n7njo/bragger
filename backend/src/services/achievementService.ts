@@ -1,4 +1,4 @@
-import { Priority, Prisma } from '@prisma/client';
+import { Status, Prisma } from '@prisma/client';
 import { prisma } from './database';
 import { 
   CreateAchievementDto, 
@@ -16,6 +16,12 @@ type AchievementWithRelations = Prisma.AchievementGetPayload<{
       };
     };
     images: true;
+    milestones: {
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'asc' }
+      ];
+    };
   };
 }>;
 
@@ -23,7 +29,7 @@ export class AchievementService {
   /**
    * Create a new achievement
    */
-  async create(data: CreateAchievementDto): Promise<AchievementWithRelations> {
+  async create(userId: string, data: CreateAchievementDto): Promise<AchievementWithRelations> {
     // Validate input data
     this.validateCreateData(data);
 
@@ -37,12 +43,13 @@ export class AchievementService {
     }
 
     // Find existing tags and create missing ones
+    const tags = data.tags || [];
     const existingTags = await prisma.tag.findMany({
-      where: { name: { in: data.tags } }
+      where: { name: { in: tags } }
     });
 
     const existingTagNames = existingTags.map(tag => tag.name);
-    const missingTagNames = data.tags.filter(tagName => !existingTagNames.includes(tagName));
+    const missingTagNames = tags.filter(tagName => !existingTagNames.includes(tagName));
 
     return prisma.$transaction(async (tx) => {
       // Create missing tags
@@ -59,6 +66,7 @@ export class AchievementService {
       // Create achievement
       const achievement = await tx.achievement.create({
         data: {
+          userId: userId,
           title: data.title,
           description: data.description,
           startDate: new Date(data.startDate),
@@ -67,8 +75,8 @@ export class AchievementService {
           categoryId: data.categoryId,
           impact: data.impact || null,
           skillsUsed: data.skillsUsed,
-          teamSize: data.teamSize || null,
-          priority: this.mapPriority(data.priority),
+          status: this.mapStatus(data.status),
+          githubUrl: data.githubUrl || null,
           tags: {
             create: allTags.map(tag => ({
               tagId: tag.id
@@ -82,20 +90,40 @@ export class AchievementService {
               tag: true
             }
           },
-          images: true
+          images: true,
+          milestones: {
+            orderBy: [
+              { order: 'asc' },
+              { createdAt: 'asc' }
+            ]
+          }
         }
       });
 
-      return achievement;
+      // Transform milestones to include isCompleted field
+      const transformedAchievement = {
+        ...achievement,
+        milestones: achievement.milestones?.map((milestone: any) => ({
+          ...milestone,
+          isCompleted: !!milestone.completedAt
+        })) || []
+      };
+
+      return transformedAchievement;
     });
   }
 
   /**
-   * Find achievement by ID
+   * Find achievement by ID (with user authorization)
    */
-  async findById(id: string): Promise<AchievementWithRelations | null> {
-    return prisma.achievement.findUnique({
-      where: { id },
+  async findById(id: string, userId?: string): Promise<AchievementWithRelations | null> {
+    const where: any = { id };
+    if (userId) {
+      where.userId = userId;
+    }
+
+    const achievement = await prisma.achievement.findFirst({
+      where,
       include: {
         category: true,
         tags: {
@@ -103,9 +131,28 @@ export class AchievementService {
             tag: true
           }
         },
-        images: true
+        images: true,
+        milestones: {
+          orderBy: [
+            { order: 'asc' },
+            { createdAt: 'asc' }
+          ]
+        }
       }
     });
+
+    if (!achievement) return null;
+
+    // Transform milestones to include isCompleted field
+    const transformedAchievement = {
+      ...achievement,
+      milestones: achievement.milestones.map((milestone: any) => ({
+        ...milestone,
+        isCompleted: !!milestone.completedAt
+      }))
+    };
+
+    return transformedAchievement;
   }
 
   /**
@@ -131,7 +178,13 @@ export class AchievementService {
             tag: true
           }
         },
-        images: true
+        images: true,
+        milestones: {
+          orderBy: [
+            { order: 'asc' },
+            { createdAt: 'asc' }
+          ]
+        }
       },
       orderBy,
       skip,
@@ -151,8 +204,17 @@ export class AchievementService {
 
     const totalPages = Math.ceil(total / pageSize);
 
+    // Transform milestones to include isCompleted field
+    const transformedData = data.map((achievement: any) => ({
+      ...achievement,
+      milestones: achievement.milestones?.map((milestone: any) => ({
+        ...milestone,
+        isCompleted: !!milestone.completedAt
+      })) || []
+    }));
+
     return {
-      data: data as AchievementWithRelations[],
+      data: transformedData as AchievementWithRelations[],
       total,
       page,
       pageSize,
@@ -163,13 +225,16 @@ export class AchievementService {
   /**
    * Update an achievement
    */
-  async update(id: string, data: UpdateAchievementDto): Promise<AchievementWithRelations> {
+  async update(id: string, userId: string, data: UpdateAchievementDto): Promise<AchievementWithRelations> {
     // Validate input data
     this.validateUpdateData(data);
 
-    // Check if achievement exists
-    const existingAchievement = await prisma.achievement.findUnique({
-      where: { id }
+    // Check if achievement exists and belongs to user
+    const existingAchievement = await prisma.achievement.findFirst({
+      where: { 
+        id,
+        userId 
+      }
     });
 
     if (!existingAchievement) {
@@ -233,8 +298,9 @@ export class AchievementService {
             categoryId: data.categoryId,
             impact: data.impact,
             skillsUsed: data.skillsUsed,
-            teamSize: data.teamSize,
-            priority: data.priority ? this.mapPriority(data.priority) : undefined
+
+            status: data.status ? this.mapStatus(data.status) : undefined,
+            githubUrl: data.githubUrl
           },
           include: {
             category: true,
@@ -243,16 +309,28 @@ export class AchievementService {
                 tag: true
               }
             },
-            images: true
+            images: true,
+            milestones: {
+              orderBy: { order: 'asc' }
+            }
           }
         });
 
-        return updatedAchievement;
+        // Transform milestones to include isCompleted field
+        const transformedAchievement = {
+          ...updatedAchievement,
+          milestones: updatedAchievement.milestones?.map((milestone: any) => ({
+            ...milestone,
+            isCompleted: !!milestone.completedAt
+          })) || []
+        };
+
+        return transformedAchievement;
       });
     }
 
     // Update without tags
-    return prisma.achievement.update({
+    const updatedAchievement = await prisma.achievement.update({
       where: { id },
       data: {
         title: data.title,
@@ -263,8 +341,8 @@ export class AchievementService {
         categoryId: data.categoryId,
         impact: data.impact,
         skillsUsed: data.skillsUsed,
-        teamSize: data.teamSize,
-        priority: data.priority ? this.mapPriority(data.priority) : undefined
+        status: data.status ? this.mapStatus(data.status) : undefined,
+        githubUrl: data.githubUrl
       },
       include: {
         category: true,
@@ -273,17 +351,34 @@ export class AchievementService {
             tag: true
           }
         },
-        images: true
+        images: true,
+        milestones: {
+          orderBy: { order: 'asc' }
+        }
       }
     });
+
+    // Transform milestones to include isCompleted field
+    const transformedAchievement = {
+      ...updatedAchievement,
+      milestones: updatedAchievement.milestones?.map((milestone: any) => ({
+        ...milestone,
+        isCompleted: !!milestone.completedAt
+      })) || []
+    };
+
+    return transformedAchievement;
   }
 
   /**
    * Delete an achievement
    */
-  async delete(id: string): Promise<boolean> {
-    const existingAchievement = await prisma.achievement.findUnique({
-      where: { id }
+  async delete(id: string, userId: string): Promise<boolean> {
+    const existingAchievement = await prisma.achievement.findFirst({
+      where: { 
+        id,
+        userId 
+      }
     });
 
     if (!existingAchievement) {
@@ -335,17 +430,15 @@ export class AchievementService {
       throw new Error('Category ID is required');
     }
 
-    if (!['low', 'medium', 'high'].includes(data.priority)) {
-      throw new Error('Invalid priority value');
+    if (!['idea', 'concept', 'usable', 'complete'].includes(data.status)) {
+      throw new Error('Invalid status value');
     }
 
     if (data.durationHours !== undefined && data.durationHours < 0) {
       throw new Error('Duration hours must be non-negative');
     }
 
-    if (data.teamSize !== undefined && data.teamSize < 1) {
-      throw new Error('Team size must be at least 1');
-    }
+
   }
 
   /**
@@ -386,17 +479,15 @@ export class AchievementService {
       throw new Error('Category ID cannot be empty');
     }
 
-    if (data.priority !== undefined && !['low', 'medium', 'high'].includes(data.priority)) {
-      throw new Error('Invalid priority value');
+    if (data.status !== undefined && !['idea', 'concept', 'usable', 'complete'].includes(data.status)) {
+      throw new Error('Invalid status value');
     }
 
     if (data.durationHours !== undefined && data.durationHours < 0) {
       throw new Error('Duration hours must be non-negative');
     }
 
-    if (data.teamSize !== undefined && data.teamSize < 1) {
-      throw new Error('Team size must be at least 1');
-    }
+
   }
 
   /**
@@ -404,6 +495,11 @@ export class AchievementService {
    */
   private buildWhereClause(filters: AchievementFilters): Prisma.AchievementWhereInput {
     const where: Prisma.AchievementWhereInput = {};
+
+    // Always filter by user if provided
+    if (filters.userId) {
+      where.userId = filters.userId;
+    }
 
     if (filters.search) {
       where.OR = [
@@ -436,8 +532,8 @@ export class AchievementService {
       }
     }
 
-    if (filters.priority) {
-      where.priority = this.mapPriority(filters.priority);
+    if (filters.status) {
+      where.status = this.mapStatus(filters.status);
     }
 
     return where;
@@ -454,14 +550,15 @@ export class AchievementService {
   }
 
   /**
-   * Map string priority to Prisma Priority enum
+   * Map string status to Prisma Status enum
    */
-  private mapPriority(priority: 'low' | 'medium' | 'high'): Priority {
-    const priorityMap: Record<string, Priority> = {
-      'low': Priority.LOW,
-      'medium': Priority.MEDIUM,
-      'high': Priority.HIGH,
+  private mapStatus(status: 'idea' | 'concept' | 'usable' | 'complete'): Status {
+    const statusMap: Record<string, Status> = {
+      'idea': Status.IDEA,
+      'concept': Status.CONCEPT,
+      'usable': Status.USABLE,
+      'complete': Status.COMPLETE,
     };
-    return priorityMap[priority];
+    return statusMap[status];
   }
 }
