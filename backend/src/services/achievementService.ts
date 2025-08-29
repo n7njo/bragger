@@ -147,6 +147,7 @@ export class AchievementService {
     // Transform milestones to include isCompleted field and flatten tags
     const transformedAchievement = {
       ...achievement,
+      status: (achievement.status as string)?.toLowerCase(),
       tags: achievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
       milestones: achievement.milestones?.map((milestone: any) => ({
         ...milestone,
@@ -209,6 +210,7 @@ export class AchievementService {
     // Transform milestones to include isCompleted field and flatten tags
     const transformedData = data.map((achievement: any) => ({
       ...achievement,
+      status: (achievement.status as string)?.toLowerCase(),
       tags: achievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
       milestones: achievement.milestones?.map((milestone: any) => ({
         ...milestone,
@@ -323,6 +325,7 @@ export class AchievementService {
         // Transform milestones to include isCompleted field and flatten tags
         const transformedAchievement = {
           ...updatedAchievement,
+          status: (updatedAchievement.status as string)?.toLowerCase(),
           tags: updatedAchievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
           milestones: updatedAchievement.milestones?.map((milestone: any) => ({
             ...milestone,
@@ -366,6 +369,7 @@ export class AchievementService {
     // Transform milestones to include isCompleted field and flatten tags
     const transformedAchievement = {
       ...updatedAchievement,
+      status: (updatedAchievement.status as string)?.toLowerCase(),
       tags: updatedAchievement.tags?.map((tagRelation: any) => tagRelation.tag) || [],
       milestones: updatedAchievement.milestones?.map((milestone: any) => ({
         ...milestone,
